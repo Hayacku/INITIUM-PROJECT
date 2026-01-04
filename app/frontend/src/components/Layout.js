@@ -133,7 +133,7 @@ const Layout = ({ children }) => {
 
                 {/* --- DESKTOP FLOATING SIDEBAR --- */}
                 <aside
-                    className={`hidden lg:flex fixed left-4 top-4 bottom-4 glass-card border flex-col transition-all duration-500 z-40 overflow-hidden
+                    className={`max-lg:hidden lg:flex fixed left-4 top-4 bottom-4 glass-card border flex-col transition-all duration-500 z-40 overflow-hidden
             ${sidebarOpen ? 'w-64' : 'w-20'}
           `}
                     data-testid="sidebar"
@@ -214,9 +214,9 @@ const Layout = ({ children }) => {
 
                 {/* --- MAIN CONTENT AREA --- */}
                 <main
-                    className={`flex-1 transition-all duration-500 min-h-screen flex flex-col mb-24 lg:mb-0
+                    className={`flex-1 transition-all duration-500 min-h-screen flex flex-col mb-24 lg:mb-0 ml-0 w-full max-w-full
             ${sidebarOpen ? 'lg:ml-[18.5rem]' : 'lg:ml-[7.5rem]'} 
-            p-3 md:p-8
+            p-4 md:p-8
           `}
                     data-testid="main-content"
                 >
@@ -265,7 +265,7 @@ const Layout = ({ children }) => {
                     </div>
 
                     {/* Page Content Injection */}
-                    <div className="max-w-[1600px] mx-auto w-full animate-scale-in">
+                    <div className="max-w-[1600px] mx-auto w-full animate-scale-in px-0">
                         {isGuestMode && (
                             <div className="mb-6 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-200 text-sm flex items-center justify-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
