@@ -18,10 +18,21 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { toast } from 'sonner';
+import { useAuth } from '../contexts/AuthContext';
+import { useCloudSync } from '../hooks/useCloudSyncNew';
+import {
+    Cloud,
+    CloudOff,
+    RefreshCw,
+    AlertCircle,
+    Zap
+} from 'lucide-react';
 
 const Settings = () => {
     const fileInputRef = useRef(null);
     const [theme, setTheme] = useState(getCurrentTheme());
+    const { user, isGuest } = useAuth();
+    const { syncing, lastSync, syncAll, migrateToCloud } = useCloudSync();
 
     // Data Export/Import Logic
     const handleExport = async () => {
@@ -190,6 +201,76 @@ const Settings = () => {
                                     </Button>
                                 </div>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* --- CLOUD SYNC SECTION --- */}
+                    <Card className="glass-card border-primary/20 bg-primary/5">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Cloud className="w-5 h-5 text-primary" />
+                                Synchronisation Cloud
+                            </CardTitle>
+                            <CardDescription>
+                                Synchronisez vos données avec votre compte INITIUM pour les retrouver partout.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            {isGuest ? (
+                                <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-start gap-4">
+                                    <AlertCircle className="w-6 h-6 text-yellow-500 shrink-0 mt-1" />
+                                    <div className="space-y-1">
+                                        <p className="font-bold text-yellow-500">Mode Invité Actif</p>
+                                        <p className="text-sm text-yellow-200/60">
+                                            La synchronisation cloud est désactivée en mode invité.
+                                            Connectez-vous à un compte pour activer la sauvegarde automatique.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                                                <Cloud className="w-5 h-5 text-green-500" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold">Statut : Connecté</p>
+                                                <p className="text-xs text-muted-foreground">Compte : {user?.email}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs text-muted-foreground">Dernière synchro</p>
+                                            <p className="text-sm font-mono">{lastSync ? lastSync.toLocaleTimeString() : 'Jamais'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <Button
+                                            onClick={syncAll}
+                                            disabled={syncing}
+                                            className="gap-2 h-12"
+                                        >
+                                            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+                                            Synchroniser maintenant
+                                        </Button>
+
+                                        <Button
+                                            onClick={migrateToCloud}
+                                            disabled={syncing}
+                                            variant="outline"
+                                            className="gap-2 h-12 border-primary/30 hover:bg-primary/10"
+                                        >
+                                            <Zap className="w-4 h-4 text-primary" />
+                                            Migrer les données locales
+                                        </Button>
+                                    </div>
+
+                                    <p className="text-[10px] text-center text-muted-foreground italic">
+                                        Note: La synchronisation fusionne vos données locales avec le serveur. La migration envoie toutes vos données locales actuelles vers le cloud.
+                                    </p>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>

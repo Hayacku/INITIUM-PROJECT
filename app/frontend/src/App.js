@@ -13,7 +13,7 @@ import Dashboard from './pages/Dashboard';
 import CookieConsent from './components/CookieConsent';
 import { applyTheme, getCurrentTheme } from './lib/themes';
 import './App.css';
-import { Loader2 } from 'lucide-react';
+import { useAutoSync } from './hooks/useAutoSync';
 
 // Lazy Imports for heavy/secondary pages (Code Splitting)
 const Onboarding = lazy(() => import('./pages/Onboarding'));
@@ -43,40 +43,49 @@ const PageLoader = () => (
   </div>
 );
 
-function App() {
+// This component is wrapped by providers so it can use hooks
+function AppContent() {
+  useAutoSync();
+
   React.useEffect(() => {
     applyTheme(getCurrentTheme());
   }, []);
 
+  return (
+    <Routes>
+      {/* Public */}
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/auth/callback" element={<Auth />} />
+
+      {/* Protected */}
+      <Route path="/" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
+
+      <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
+
+      <Route path="/quests" element={<PrivateRoute><Layout><Quests /></Layout></PrivateRoute>} />
+      <Route path="/habits" element={<PrivateRoute><Layout><Habits /></Layout></PrivateRoute>} />
+      <Route path="/agenda" element={<PrivateRoute><Layout><Agenda /></Layout></PrivateRoute>} />
+      <Route path="/projects" element={<PrivateRoute><Layout><Projects /></Layout></PrivateRoute>} />
+      <Route path="/notes" element={<PrivateRoute><Layout><Notes /></Layout></PrivateRoute>} />
+      <Route path="/training" element={<PrivateRoute><Layout><Training /></Layout></PrivateRoute>} />
+      <Route path="/analytics" element={<PrivateRoute><Layout><Analytics /></Layout></PrivateRoute>} />
+      <Route path="/settings" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
+      <Route path="/pomodoro" element={<PrivateRoute><Layout><Pomodoro /></Layout></PrivateRoute>} />
+      <Route path="/help" element={<PrivateRoute><Layout><Help /></Layout></PrivateRoute>} />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+function App() {
   return (
     <AuthProvider>
       <AppProvider>
         <BrowserRouter>
           <TourProvider>
             <Suspense fallback={<Layout><PageLoader /></Layout>}>
-              <Routes>
-                {/* Public */}
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/auth/callback" element={<Auth />} />
-
-                {/* Protected */}
-                <Route path="/" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
-
-                <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
-
-                <Route path="/quests" element={<PrivateRoute><Layout><Quests /></Layout></PrivateRoute>} />
-                <Route path="/habits" element={<PrivateRoute><Layout><Habits /></Layout></PrivateRoute>} />
-                <Route path="/agenda" element={<PrivateRoute><Layout><Agenda /></Layout></PrivateRoute>} />
-                <Route path="/projects" element={<PrivateRoute><Layout><Projects /></Layout></PrivateRoute>} />
-                <Route path="/notes" element={<PrivateRoute><Layout><Notes /></Layout></PrivateRoute>} />
-                <Route path="/training" element={<PrivateRoute><Layout><Training /></Layout></PrivateRoute>} />
-                <Route path="/analytics" element={<PrivateRoute><Layout><Analytics /></Layout></PrivateRoute>} />
-                <Route path="/settings" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
-                <Route path="/pomodoro" element={<PrivateRoute><Layout><Pomodoro /></Layout></PrivateRoute>} />
-                <Route path="/help" element={<PrivateRoute><Layout><Help /></Layout></PrivateRoute>} />
-
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+              <AppContent />
             </Suspense>
             <CookieConsent />
             <Toaster position="top-right" richColors />
