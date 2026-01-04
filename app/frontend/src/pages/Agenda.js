@@ -188,11 +188,11 @@ const Agenda = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-2 flex items-center gap-3" data-testid="agenda-title">
-            <CalendarIcon className="w-10 h-10 text-primary" />
+          <h1 className="text-3xl sm:text-5xl font-bold mb-2 flex items-center gap-3" data-testid="agenda-title">
+            <CalendarIcon className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
             Agenda
           </h1>
-          <p className="text-foreground/60 text-lg">Organisez vos événements et deadlines</p>
+          <p className="text-foreground/60 text-sm sm:text-lg">Organisez vos événements et deadlines</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
@@ -333,15 +333,14 @@ const Agenda = () => {
                 <button
                   key={idx}
                   onClick={() => setSelectedDate(day)}
-                  className={`aspect-square p-2 rounded-lg transition-all relative ${isSelected ? 'bg-primary text-white' :
+                  className={`aspect-square p-1 sm:p-2 rounded-lg transition-all relative flex flex-col items-center justify-center ${isSelected ? 'bg-primary text-white' :
                     isToday ? 'bg-primary/20 text-primary font-bold' :
                       isCurrentMonth ? 'hover:bg-foreground/5' : 'text-foreground/30'
                     }`}
                   data-testid={`calendar-day-${format(day, 'yyyy-MM-dd')}`}
                 >
-                  <span>{format(day, 'd')}</span>
-                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5 max-w-[80%] justify-center overflow-hidden">
-                    {/* Dots indicateurs simples */}
+                  <span className="text-xs sm:text-base">{format(day, 'd')}</span>
+                  <div className="flex gap-0.5 mt-0.5 h-1 justify-center">
                     {hasEvents && <div className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-blue-500'}`} />}
                     {hasQuests && <div className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-red-500'}`} />}
                     {hasTraining && <div className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-orange-500'}`} />}

@@ -215,8 +215,8 @@ const Layout = ({ children }) => {
                 {/* --- MAIN CONTENT AREA --- */}
                 <main
                     className={`flex-1 transition-all duration-500 min-h-screen flex flex-col mb-24 lg:mb-0
-            ${sidebarOpen ? 'lg:ml-[18.5rem]' : 'lg:ml-[7.5rem]'} /* Margin adjusted for floating sidebar (16rem/5rem + 1rem padding + 1.5rem gap) */
-            p-4 md:p-8
+            ${sidebarOpen ? 'lg:ml-[18.5rem]' : 'lg:ml-[7.5rem]'} 
+            p-3 md:p-8
           `}
                     data-testid="main-content"
                 >

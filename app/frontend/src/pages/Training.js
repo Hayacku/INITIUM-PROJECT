@@ -180,11 +180,11 @@ const Training = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-2 flex items-center gap-3" data-testid="training-title">
-            <Dumbbell className="w-10 h-10 text-primary" />
+          <h1 className="text-3xl sm:text-5xl font-bold mb-2 flex items-center gap-3" data-testid="training-title">
+            <Dumbbell className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
             Training 2.0
           </h1>
-          <p className="text-foreground/60 text-lg">Suivez et planifiez vos entraînements</p>
+          <p className="text-foreground/60 text-sm sm:text-lg">Suivez et planifiez vos entraînements</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
@@ -298,32 +298,46 @@ const Training = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium mb-2 block">Exercices</label>
                 {formData.exercises.map((ex, idx) => (
-                  <div key={idx} className="grid grid-cols-6 gap-2 items-center mb-2 animate-in slide-in-from-left-2">
-                    <Input
-                      placeholder="Nom"
-                      value={ex.name}
-                      onChange={e => handleExerciseChange(idx, 'name', e.target.value)}
-                      className="col-span-2"
-                    />
-                    <Input
-                      placeholder="Reps"
-                      value={ex.reps}
-                      onChange={e => handleExerciseChange(idx, 'reps', e.target.value)}
-                    />
-                    <Input
-                      placeholder="Sets"
-                      value={ex.sets}
-                      onChange={e => handleExerciseChange(idx, 'sets', e.target.value)}
-                    />
-                    <Input
-                      placeholder="Détails"
-                      value={ex.details}
-                      onChange={e => handleExerciseChange(idx, 'details', e.target.value)}
-                      className="col-span-2"
-                    />
-                    <Button variant="ghost" size="icon" onClick={() => handleRemoveExercise(idx)} className="text-destructive">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                  <div key={idx} className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-3 relative group animate-in slide-in-from-left-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Nom de l'exercice"
+                        value={ex.name}
+                        onChange={e => handleExerciseChange(idx, 'name', e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button variant="ghost" size="icon" onClick={() => handleRemoveExercise(idx)} className="text-destructive shrink-0">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-muted-foreground uppercase px-1">Reps</label>
+                        <Input
+                          placeholder="Ex: 12"
+                          value={ex.reps}
+                          onChange={e => handleExerciseChange(idx, 'reps', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-muted-foreground uppercase px-1">Séries</label>
+                        <Input
+                          placeholder="Ex: 3"
+                          value={ex.sets}
+                          onChange={e => handleExerciseChange(idx, 'sets', e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-muted-foreground uppercase px-1">Détails / Poids</label>
+                      <Input
+                        placeholder="Ex: 40kg, repos 60s..."
+                        value={ex.details}
+                        onChange={e => handleExerciseChange(idx, 'details', e.target.value)}
+                      />
+                    </div>
                   </div>
                 ))}
                 <Button variant="outline" size="sm" onClick={handleAddExercise} className="mt-2 w-full border-dashed">

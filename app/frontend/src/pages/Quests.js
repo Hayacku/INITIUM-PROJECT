@@ -280,11 +280,11 @@ const Quests = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-2 flex items-center gap-3" data-testid="quests-title">
-            <Target className="w-10 h-10 text-primary" />
+          <h1 className="text-3xl sm:text-5xl font-bold mb-2 flex items-center gap-3" data-testid="quests-title">
+            <Target className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
             Quêtes
           </h1>
-          <p className="text-foreground/60 text-lg">Gérez vos objectifs et missions</p>
+          <p className="text-foreground/60 text-sm sm:text-lg">Gérez vos objectifs et missions</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>

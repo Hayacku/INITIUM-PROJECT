@@ -108,11 +108,11 @@ const Dashboard = () => {
         <div className="space-y-8 animate-fade-in pb-12" data-testid="dashboard-page">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-                <div>
-                    <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary via-purple-400 to-accent bg-clip-text text-transparent flex items-center gap-3 mb-2" data-testid="dashboard-title">
-                        {getTimeOfDay()}, {user?.username || 'Voyageur'}
+                <div className="w-full">
+                    <h1 className="text-2xl sm:text-5xl font-bold bg-gradient-to-r from-primary via-purple-400 to-accent bg-clip-text text-transparent flex items-center gap-3 mb-2" data-testid="dashboard-title">
+                        {getTimeOfDay()}, <span className="truncate max-w-[200px]">{user?.username || 'Voyageur'}</span>
                     </h1>
-                    <p className="text-muted-foreground text-lg">Prêt à conquérir cette journée ?</p>
+                    <p className="text-muted-foreground text-sm sm:text-lg">Prêt à conquérir cette journée ?</p>
                 </div>
                 <div className="flex gap-3">
                     <Button variant="outline" className="gap-2 glass hover:bg-white/10" onClick={startTour}>
