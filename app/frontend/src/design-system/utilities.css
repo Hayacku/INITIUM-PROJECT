@@ -1,0 +1,100 @@
+/* ========== SEMANTIC COLOR UTILITIES ========== */
+.bg-success {
+    @apply bg-[hsl(var(--success))];
+}
+
+.text-success {
+    @apply text-[hsl(var(--success))];
+}
+
+.border-success {
+    @apply border-[hsl(var(--success))];
+}
+
+.bg-warning {
+    @apply bg-[hsl(var(--warning))];
+}
+
+.text-warning {
+    @apply text-[hsl(var(--warning))];
+}
+
+.border-warning {
+    @apply border-[hsl(var(--warning))];
+}
+
+.bg-info {
+    @apply bg-[hsl(var(--info))];
+}
+
+.text-info {
+    @apply text-[hsl(var(--info))];
+}
+
+.border-info {
+    @apply border-[hsl(var(--info))];
+}
+
+.bg-error {
+    @apply bg-[hsl(var(--error))];
+}
+
+.text-error {
+    @apply text-[hsl(var(--error))];
+}
+
+.border-error {
+    @apply border-[hsl(var(--error))];
+}
+
+/* ========== BUTTON UTILITIES ========== */
+.btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-xl font-medium transition-all duration-200 active:scale-95 shadow-lg shadow-primary/20;
+}
+
+.btn-secondary {
+    @apply bg-secondary/10 text-secondary hover:bg-secondary/20 px-4 py-2 rounded-xl font-medium transition-all duration-200 active:scale-95 border border-secondary/20;
+}
+
+.btn-ghost {
+    @apply hover:bg-white/5 px-4 py-2 rounded-xl font-medium transition-all duration-200 active:scale-95;
+}
+
+/* ========== GRADIENT TEXT ========== */
+.text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+}
+
+.text-gradient-secondary {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-secondary to-primary;
+}
+
+/* ========== TEXT GLOW EFFECTS ========== */
+.text-glow-success {
+    text-shadow: 0 0 15px hsl(var(--success) / 0.6);
+}
+
+.text-glow-warning {
+    text-shadow: 0 0 15px hsl(var(--warning) / 0.6);
+}
+
+.text-glow-info {
+    text-shadow: 0 0 15px hsl(var(--info) / 0.6);
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-slide-in-right {
+    animation: slide-in-right 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
