@@ -92,7 +92,12 @@ function App() {
             <BrowserRouter>
               <TourProvider>
                 <HistoryProvider>
-                  <Suspense fallback={null}>
+                  <Suspense fallback={
+                    <div className="flex flex-col items-center justify-center min-h-screen bg-[#09090b] text-white">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                      <p className="text-muted-foreground animate-pulse">Initialisation de l'expérience...</p>
+                    </div>
+                  }>
                     <AppContent />
                   </Suspense>
                   <CookieConsent />

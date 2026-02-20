@@ -124,20 +124,31 @@ export const AuthProvider = ({ children }) => {
   // Load user on mount
   useEffect(() => {
     const loadUser = async () => {
+      console.log(`[Auth] Initializing with API_URL: ${API_URL}`);
+      if (API_URL.includes('localhost') && window.location.hostname !== 'localhost') {
+        console.warn('[Auth] Warning: App is running on a remote host but API_URL points to localhost. Check REACT_APP_API_URL in environment settings.');
+      }
+
       const accessToken = localStorage.getItem('access_token');
       const isGuestMode = localStorage.getItem('is_guest') === 'true';
 
       if (accessToken) {
         try {
+          console.log('[Auth] Attempting to load user with token');
           const response = await api.get('/auth/me');
           setUser(response.data);
+          console.log('[Auth] User loaded successfully');
           // If we have a user, ensure guest mode is off
           if (isGuestMode) {
             setIsGuest(false);
             localStorage.removeItem('is_guest');
           }
         } catch (error) {
-          console.error('Failed to load user:', error);
+          console.error('[Auth] Failed to load user:', error.message);
+          if (error.response) {
+            console.error('[Auth] Error status:', error.response.status);
+            console.error('[Auth] Error data:', error.response.data);
+          }
           // Only fully logout if we are not in guest mode
           // But here, if token is invalid, we should probably clear it.
           // If we want to fallback to guest, we could, but better to be explicit.
@@ -151,7 +162,10 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } else if (isGuestMode) {
+        console.log('[Auth] Continuing in Guest Mode');
         setIsGuest(true);
+      } else {
+        console.log('[Auth] No session found, redirecting to login/auth');
       }
 
       setLoading(false);
