@@ -7,7 +7,8 @@ import { Link } from 'react-router-dom';
 import {
     Trophy, Flame, Target, Calendar, Quote,
     Zap, TrendingUp, CheckCircle2, LayoutDashboard, Settings2,
-    Dumbbell, StickyNote, Sword, Medal
+    Dumbbell, StickyNote, Sword, Medal, Maximize2, Minimize2,
+    Lock
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import {
@@ -16,7 +17,10 @@ import {
     DropdownMenuCheckboxItem,
     DropdownMenuTrigger,
     DropdownMenuLabel,
-    DropdownMenuSeparator
+    DropdownMenuSeparator,
+    DropdownMenuSub,
+    DropdownMenuSubTrigger,
+    DropdownMenuSubContent
 } from '../components/ui/dropdown-menu';
 import StatCard from '../components/dashboard/StatCard';
 import ProjectCard from '../components/dashboard/ProjectCard';
@@ -24,47 +28,113 @@ import TimelineEvent from '../components/dashboard/TimelineEvent';
 import AxiomDecisionCard from '../components/AxiomDecisionCard';
 import FocusMode from '../components/FocusMode';
 import { format } from 'date-fns';
+import { Progress } from '../components/ui/progress';
+import { Badge } from '../components/ui/badge';
+import { toast } from 'sonner';
+import GridLayout from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 
 const DashboardV2 = () => {
-    const { user } = useApp();
+    const { user, addXP, activeTitle } = useApp();
+
+    // Widget size presets (grid units: cols = 12)
+    const WIDGET_SIZES = {
+        small: { w: 4, h: 3 },
+        medium: { w: 6, h: 4 },
+        large: { w: 12, h: 5 }
+    };
+
+    // Default layout configuration
+    const getDefaultLayout = () => [
+        { i: 'stats', x: 0, y: 0, w: 12, h: 2, minW: 4, minH: 2 },
+        { i: 'habits', x: 0, y: 2, w: 8, h: 4, minW: 4, minH: 3 },
+        { i: 'quests', x: 0, y: 6, w: 8, h: 5, minW: 4, minH: 4 },
+        { i: 'projects', x: 0, y: 11, w: 8, h: 5, minW: 4, minH: 4 },
+        { i: 'today', x: 8, y: 2, w: 4, h: 6, minW: 3, minH: 5 },
+        { i: 'training', x: 8, y: 8, w: 4, h: 4, minW: 3, minH: 3 },
+        { i: 'notes', x: 8, y: 12, w: 4, h: 4, minW: 3, minH: 3 },
+        { i: 'axiom', x: 0, y: 16, w: 8, h: 5, minW: 4, minH: 4 },
+        { i: 'quote', x: 8, y: 16, w: 4, h: 2, minW: 3, minH: 2 }
+    ];
 
     // Customization State - Persisted
-    const [visibleWidgets, setVisibleWidgets] = useState(() => {
-        const saved = localStorage.getItem('dashboard_widgets_v2');
+    const [widgetConfig, setWidgetConfig] = useState(() => {
+        const saved = localStorage.getItem('dashboard_widgets_config_v3');
         try {
             return saved ? JSON.parse(saved) : {
-                stats: true,
-                habits: true,
-                quests: true,
-                projects: true,
-                training: true,
-                notes: true,
-                axiom: true,
-                today: true,
-                quote: true
+                stats: { visible: true, size: 'large' },
+                habits: { visible: true, size: 'large' },
+                quests: { visible: true, size: 'large' },
+                projects: { visible: true, size: 'large' },
+                training: { visible: true, size: 'medium' },
+                notes: { visible: true, size: 'medium' },
+                axiom: { visible: true, size: 'large' },
+                today: { visible: true, size: 'medium' },
+                quote: { visible: true, size: 'small' }
             };
         } catch (e) {
             return {
-                stats: true, habits: true, quests: true, projects: true,
-                training: true, notes: true, axiom: true, today: true, quote: true
+                stats: { visible: true, size: 'large' },
+                habits: { visible: true, size: 'large' },
+                quests: { visible: true, size: 'large' },
+                projects: { visible: true, size: 'large' },
+                training: { visible: true, size: 'medium' },
+                notes: { visible: true, size: 'medium' },
+                axiom: { visible: true, size: 'large' },
+                today: { visible: true, size: 'medium' },
+                quote: { visible: true, size: 'small' }
             };
         }
     });
 
+    const [layout, setLayout] = useState(() => {
+        const savedLayout = localStorage.getItem('dashboard_layout_v3');
+        return savedLayout ? JSON.parse(savedLayout) : getDefaultLayout();
+    });
+
     const toggleWidget = (key) => {
-        const newState = { ...visibleWidgets, [key]: !visibleWidgets[key] };
-        setVisibleWidgets(newState);
-        localStorage.setItem('dashboard_widgets_v2', JSON.stringify(newState));
+        const newConfig = {
+            ...widgetConfig,
+            [key]: { ...widgetConfig[key], visible: !widgetConfig[key].visible }
+        };
+        setWidgetConfig(newConfig);
+        localStorage.setItem('dashboard_widgets_config_v3', JSON.stringify(newConfig));
+    };
+
+    const changeWidgetSize = (key, size) => {
+        const newConfig = {
+            ...widgetConfig,
+            [key]: { ...widgetConfig[key], size }
+        };
+        setWidgetConfig(newConfig);
+        localStorage.setItem('dashboard_widgets_config_v3', JSON.stringify(newConfig));
+
+        // Update layout with new size
+        const sizeConfig = WIDGET_SIZES[size];
+        const newLayout = layout.map(item =>
+            item.i === key
+                ? { ...item, w: sizeConfig.w, h: sizeConfig.h }
+                : item
+        );
+        setLayout(newLayout);
+        localStorage.setItem('dashboard_layout_v3', JSON.stringify(newLayout));
+    };
+
+    const onLayoutChange = (newLayout) => {
+        setLayout(newLayout);
+        localStorage.setItem('dashboard_layout_v3', JSON.stringify(newLayout));
     };
 
     const [data, setData] = useState({
-        stats: { activeQuests: 0, completedHabits: 0, todayXP: 0, streak: 0 },
+        stats: { activeQuests: 0, completedHabits: 0, todayXP: 0, streak: 0, totalXP: 0 },
         activeProjects: [],
         todayEvents: [],
         habits: [],
         quests: [],
         notes: [],
-        training: null
+        training: null,
+        nextBadge: null
     });
     const [isFocusOpen, setIsFocusOpen] = useState(false);
     const [quote] = useState({
@@ -87,8 +157,10 @@ const DashboardV2 = () => {
             // 2. Quests
             const activeQuests = await db.quests.where('status').equals('in_progress').limit(5).toArray();
 
-            // 3. Analytics
-            const todayAnalytics = await db.analytics.where('date').equals(new Date(today)).first();
+            // 3. Analytics & XP
+            const allAnalytics = await db.analytics.toArray();
+            const todayAnalytics = allAnalytics.find(a => new Date(a.date).toDateString() === today);
+            const totalXP = allAnalytics.reduce((acc, curr) => acc + (curr.xpEarned || curr.xpGained || 0), 0);
 
             // 4. Projects
             const projects = await db.projects.toArray();
@@ -121,19 +193,32 @@ const DashboardV2 = () => {
             // Assuming we might have a 'workouts' table later
             const trainingSession = { label: "Séance Haut du Corps", time: "18:00" }; // Placeholder
 
+            // 8. Gamification
+            const unlockables = await db.unlockables.toArray();
+            // Fallback seed calculation for next badge
+            let nextBadge = null;
+            if (unlockables.length > 0) {
+                const lockedBadges = unlockables
+                    .filter(u => u.category === 'badge' && !u.isUnlocked)
+                    .sort((a, b) => a.xpCost - b.xpCost);
+                nextBadge = lockedBadges.length > 0 ? lockedBadges[0] : null;
+            }
+
             setData({
                 stats: {
                     activeQuests: activeQuests.length,
                     completedHabits: habits.filter(h => h.lastCompleted && new Date(h.lastCompleted).toDateString() === today).length,
-                    todayXP: todayAnalytics ? todayAnalytics.xpGained : 0,
-                    streak: maxStreak
+                    todayXP: todayAnalytics ? (todayAnalytics.xpEarned || todayAnalytics.xpGained || 0) : 0,
+                    streak: maxStreak,
+                    totalXP: user?.xp || 0
                 },
                 habits: habits.slice(0, 6), // Show top 6
                 quests: activeQuests,
                 activeProjects: projectsWithProgress,
                 todayEvents: combinedEvents,
                 notes: recentNotes,
-                training: trainingSession
+                training: trainingSession,
+                nextBadge
             });
 
         } catch (error) {
@@ -148,9 +233,9 @@ const DashboardV2 = () => {
         return "Bonsoir";
     };
 
-    const xpProgress = user?.xpToNextLevel > 0
-        ? (user?.currentXP / user?.xpToNextLevel) * 100
-        : 0;
+    const calculatedLevel = user?.level || 1;
+    const currentXP = user?.xp || 0;
+    const xpToNextLevel = user?.xpToNextLevel || 100;
 
     return (
         <div className="space-y-6 pb-24 lg:pb-8 max-w-7xl mx-auto" data-testid="dashboard-v2">
@@ -158,11 +243,18 @@ const DashboardV2 = () => {
 
             {/* HEADER - Clean & Welcoming */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                        {getTimeOfDay()}, <span className="text-primary">{user?.username || 'Voyageur'}</span>
-                    </h1>
-                    <p className="text-muted-foreground mt-1">
+                <div className="max-w-full overflow-hidden">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground truncate sm:whitespace-normal">
+                            {getTimeOfDay()}, <span className="text-primary">{user?.username || 'Initié'}</span>
+                        </h1>
+                        {activeTitle && (
+                            <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 uppercase text-[10px] font-black italic tracking-widest px-3 py-1 shrink-0">
+                                {activeTitle}
+                            </Badge>
+                        )}
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                         Aujourd'hui est une nouvelle opportunité.
                     </p>
                 </div>
@@ -182,10 +274,10 @@ const DashboardV2 = () => {
                                 <Settings2 className="w-5 h-5" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuContent align="end" className="w-64">
                             <DropdownMenuLabel>Personnaliser l'accueil</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {Object.keys(visibleWidgets).map(key => {
+                            {Object.keys(widgetConfig).map(key => {
                                 const labels = {
                                     stats: 'Statistiques',
                                     habits: 'Habitudes',
@@ -198,13 +290,42 @@ const DashboardV2 = () => {
                                     quote: 'Citation'
                                 };
                                 return (
-                                    <DropdownMenuCheckboxItem
-                                        key={key}
-                                        checked={visibleWidgets[key]}
-                                        onCheckedChange={() => toggleWidget(key)}
-                                    >
-                                        {labels[key] || key}
-                                    </DropdownMenuCheckboxItem>
+                                    <div key={key} className="flex items-center justify-between py-1 px-2">
+                                        <DropdownMenuCheckboxItem
+                                            checked={widgetConfig[key].visible}
+                                            onCheckedChange={() => toggleWidget(key)}
+                                            className="flex-1"
+                                        >
+                                            {labels[key] || key}
+                                        </DropdownMenuCheckboxItem>
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger className="h-6 px-2">
+                                                {widgetConfig[key].size === 'small' && <Minimize2 className="w-3 h-3" />}
+                                                {widgetConfig[key].size === 'medium' && <span className="text-xs">M</span>}
+                                                {widgetConfig[key].size === 'large' && <Maximize2 className="w-3 h-3" />}
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuSubContent>
+                                                <DropdownMenuCheckboxItem
+                                                    checked={widgetConfig[key].size === 'small'}
+                                                    onCheckedChange={() => changeWidgetSize(key, 'small')}
+                                                >
+                                                    Petit
+                                                </DropdownMenuCheckboxItem>
+                                                <DropdownMenuCheckboxItem
+                                                    checked={widgetConfig[key].size === 'medium'}
+                                                    onCheckedChange={() => changeWidgetSize(key, 'medium')}
+                                                >
+                                                    Moyen
+                                                </DropdownMenuCheckboxItem>
+                                                <DropdownMenuCheckboxItem
+                                                    checked={widgetConfig[key].size === 'large'}
+                                                    onCheckedChange={() => changeWidgetSize(key, 'large')}
+                                                >
+                                                    Grand
+                                                </DropdownMenuCheckboxItem>
+                                            </DropdownMenuSubContent>
+                                        </DropdownMenuSub>
+                                    </div>
                                 );
                             })}
                         </DropdownMenuContent>
@@ -219,44 +340,47 @@ const DashboardV2 = () => {
                 <div className="lg:col-span-8 space-y-6">
 
                     {/* STATS - Minimalist */}
-                    {visibleWidgets.stats && (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            <div className="bg-card border border-border/50 rounded-xl p-4 flex flex-col justify-between hover:bg-accent/50 transition-colors">
-                                <Trophy className="w-5 h-5 text-yellow-500 mb-2" />
-                                <div>
-                                    <div className="text-2xl font-bold">{user?.level || 1}</div>
-                                    <div className="text-xs text-muted-foreground">Niveau</div>
+                    {widgetConfig.stats.visible && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 overflow-hidden">
+                            <div className="bg-card border border-border/50 rounded-xl p-3 sm:p-4 flex flex-col justify-between hover:bg-accent/50 transition-colors min-w-0 overflow-hidden relative">
+                                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mb-2 shrink-0" />
+                                <div className="min-w-0">
+                                    <div className="text-xl sm:text-2xl font-bold truncate">Niveau {calculatedLevel}</div>
+                                    <div className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                                        Initié • x{(1 + Math.floor(calculatedLevel / 5) * 0.02).toFixed(2)} XP
+                                    </div>
                                 </div>
                             </div>
-                            <div className="bg-card border border-border/50 rounded-xl p-4 flex flex-col justify-between hover:bg-accent/50 transition-colors">
-                                <Flame className="w-5 h-5 text-orange-500 mb-2" />
-                                <div>
-                                    <div className="text-2xl font-bold">{data.stats.streak}</div>
-                                    <div className="text-xs text-muted-foreground">Jours de suite</div>
+                            <div className="bg-card border border-border/50 rounded-xl p-3 sm:p-4 flex flex-col justify-between hover:bg-accent/50 transition-colors min-w-0 overflow-hidden">
+                                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 mb-2 shrink-0" />
+                                <div className="min-w-0">
+                                    <div className="text-xl sm:text-2xl font-bold truncate">{currentXP}</div>
+                                    <div className="text-[10px] sm:text-xs text-muted-foreground truncate">XP Actuel</div>
                                 </div>
                             </div>
-                            <div className="bg-card border border-border/50 rounded-xl p-4 flex flex-col justify-between hover:bg-accent/50 transition-colors">
-                                <Target className="w-5 h-5 text-blue-500 mb-2" />
-                                <div>
-                                    <div className="text-2xl font-bold">{data.stats.activeQuests}</div>
-                                    <div className="text-xs text-muted-foreground">Quêtes actives</div>
+
+                            {/* Next Badge Progress */}
+                            <div className="bg-card border border-border/50 rounded-xl p-3 sm:p-4 flex flex-col justify-between hover:bg-accent/50 transition-colors col-span-2 sm:col-span-2 min-w-0 overflow-hidden">
+                                <div className="flex justify-between items-start mb-2 gap-1">
+                                    <Medal className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 shrink-0" />
+                                    <span className="text-[10px] sm:text-xs text-muted-foreground truncate">{xpToNextLevel - currentXP} XP restants</span>
                                 </div>
-                            </div>
-                            <div className="bg-card border border-border/50 rounded-xl p-4 flex flex-col justify-between hover:bg-accent/50 transition-colors">
-                                <TrendingUp className="w-5 h-5 text-emerald-500 mb-2" />
-                                <div>
-                                    <div className="text-2xl font-bold">+{data.stats.todayXP}</div>
-                                    <div className="text-xs text-muted-foreground">XP du jour</div>
+                                <div className="min-w-0">
+                                    <div className="flex justify-between text-[10px] sm:text-xs font-medium mb-1 gap-2">
+                                        <span className="truncate">Vers Niveau {calculatedLevel + 1}</span>
+                                        <span className="shrink-0">{Math.floor((currentXP / xpToNextLevel) * 100)}%</span>
+                                    </div>
+                                    <Progress value={(currentXP / xpToNextLevel) * 100} className="h-1.5 sm:h-2" />
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {/* HABITS - Soft Bubbles */}
-                    {visibleWidgets.habits && (
-                        <div className="bg-card/50 rounded-2xl p-5 border border-border/50">
+                    {widgetConfig.habits.visible && (
+                        <div className="glass-card p-5">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground/80">
+                                <h2 className="text-2xl font-bold flex items-center gap-2 text-foreground/80">
                                     <CheckCircle2 className="w-4 h-4" /> Habitudes
                                 </h2>
                                 <Link to="/habits" className="text-xs text-muted-foreground hover:text-primary transition-colors">Tout voir</Link>
@@ -285,9 +409,29 @@ const DashboardV2 = () => {
                                                     bestStreak: Math.max(newStreak, h.bestStreak || 0),
                                                     lastCompleted: new Date()
                                                 });
+
+                                                // Add XP
+                                                const todayStr = new Date().toDateString();
+                                                const existingAnalytics = await db.analytics.where('date').equals(new Date(todayStr)).first();
+                                                if (existingAnalytics) {
+                                                    await db.analytics.update(existingAnalytics.id, {
+                                                        habitsCompleted: (existingAnalytics.habitsCompleted || 0) + 1,
+                                                        xpEarned: (existingAnalytics.xpEarned || 0) + 10
+                                                    });
+                                                } else {
+                                                    await db.analytics.add({
+                                                        id: `analytics-${todayStr}`,
+                                                        date: new Date(todayStr),
+                                                        habitsCompleted: 1,
+                                                        xpEarned: 10,
+                                                        questsCompleted: 0
+                                                    });
+                                                }
+                                                toast.success("+10 XP !");
+                                                loadDashboardData(); // Reload for XP update
                                             }}
                                             className={`
-                                            flex-shrink-0 w-16 h-16 rounded-2xl flex flex-col items-center justify-center 
+                                            flex-shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center 
                                             transition-all cursor-pointer select-none
                                             ${isDone
                                                     ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
@@ -303,22 +447,22 @@ const DashboardV2 = () => {
                     )}
 
                     {/* ACTIVE QUESTS - Clean List */}
-                    {visibleWidgets.quests && (
-                        <div className="bg-card/50 rounded-2xl p-5 border border-border/50">
+                    {widgetConfig.quests.visible && (
+                        <div className="glass-card p-5 overflow-hidden">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground/80">
-                                    <Sword className="w-4 h-4" /> Quêtes en cours
+                                <h2 className="text-sm font-bold flex items-center gap-2 text-foreground/80 truncate">
+                                    <Sword className="w-4 h-4 shrink-0" /> Quêtes en cours
                                 </h2>
-                                <Link to="/quests" className="text-xs text-muted-foreground hover:text-primary transition-colors">Tout voir</Link>
+                                <Link to="/quests" className="text-xs text-muted-foreground hover:text-primary transition-colors shrink-0">Tout voir</Link>
                             </div>
                             <div className="space-y-2">
                                 {data.quests.length > 0 ? data.quests.map(q => (
-                                    <div key={q.id} className="group flex items-center justify-between p-3 rounded-xl bg-background border border-border/40 hover:border-border transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-2 h-2 rounded-full ${q.priority === 'high' ? 'bg-red-400' : 'bg-blue-400'}`} />
-                                            <span className="text-sm font-medium text-foreground/90">{q.title}</span>
+                                    <div key={q.id} className="group flex items-center justify-between p-3 rounded-xl bg-background border border-border/40 hover:border-border transition-colors min-w-0 overflow-hidden gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className={`w-2 h-2 rounded-full shrink-0 ${q.priority === 'high' ? 'bg-red-400' : 'bg-blue-400'}`} />
+                                            <span className="text-sm font-medium text-foreground/90 truncate">{q.title}</span>
                                         </div>
-                                        <span className="text-xs text-muted-foreground font-mono">+{q.xpReward} XP</span>
+                                        <span className="text-xs text-muted-foreground font-mono shrink-0">+{q.xpReward} XP</span>
                                     </div>
                                 )) : (
                                     <div className="text-center py-6 text-sm text-muted-foreground">Aucune quête active.</div>
@@ -328,10 +472,10 @@ const DashboardV2 = () => {
                     )}
 
                     {/* PROJECTS */}
-                    {visibleWidgets.projects && (
+                    {widgetConfig.projects.visible && (
                         <div>
                             <div className="flex items-center justify-between mb-4 px-1">
-                                <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground/80">
+                                <h2 className="text-sm font-bold flex items-center gap-2 text-foreground/80">
                                     <LayoutDashboard className="w-4 h-4" /> Projets
                                 </h2>
                                 <Link to="/projects" className="text-xs text-muted-foreground hover:text-primary transition-colors">Tout voir</Link>
@@ -343,7 +487,7 @@ const DashboardV2 = () => {
                     )}
 
                     {/* AXIOM */}
-                    {visibleWidgets.axiom && (
+                    {widgetConfig.axiom.visible && (
                         <div className="mt-6">
                             <AxiomDecisionCard />
                         </div>
@@ -354,10 +498,10 @@ const DashboardV2 = () => {
                 <div className="lg:col-span-4 space-y-6">
 
                     {/* AGENDA */}
-                    {visibleWidgets.today && (
-                        <div className="bg-card/50 rounded-2xl p-5 border border-border/50 min-h-[300px]">
+                    {widgetConfig.today.visible && (
+                        <div className="glass-card p-5 min-h-[300px]">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground/80">
+                                <h2 className="text-sm font-bold flex items-center gap-2 text-foreground/80">
                                     <Calendar className="w-4 h-4" /> Aujourd'hui
                                 </h2>
                                 <span className="text-xs text-muted-foreground capitalize">
@@ -373,10 +517,10 @@ const DashboardV2 = () => {
                     )}
 
                     {/* TRAINING WIDGET */}
-                    {visibleWidgets.training && (
-                        <div className="bg-card/50 rounded-2xl p-5 border border-border/50">
+                    {widgetConfig.training.visible && (
+                        <div className="glass-card p-5">
                             <div className="flex items-center justify-between mb-2">
-                                <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground/80">
+                                <h2 className="text-sm font-bold flex items-center gap-2 text-foreground/80">
                                     <Dumbbell className="w-4 h-4" /> Entraînement
                                 </h2>
                             </div>
@@ -395,10 +539,10 @@ const DashboardV2 = () => {
                     )}
 
                     {/* NOTES WIDGET - Simple */}
-                    {visibleWidgets.notes && (
-                        <div className="bg-card/50 rounded-2xl p-5 border border-border/50">
+                    {widgetConfig.notes.visible && (
+                        <div className="glass-card p-5">
                             <div className="flex items-center justify-between mb-3">
-                                <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground/80">
+                                <h2 className="text-sm font-bold flex items-center gap-2 text-foreground/80">
                                     <StickyNote className="w-4 h-4" /> Notes récentes
                                 </h2>
                                 <Link to="/notes" className="text-xs text-muted-foreground hover:text-primary">+</Link>
@@ -414,10 +558,10 @@ const DashboardV2 = () => {
                     )}
 
                     {/* QUOTE - Minimal */}
-                    {visibleWidgets.quote && (
+                    {widgetConfig.quote.visible && (
                         <div className="p-4 border-l-2 border-primary/20 pl-4 italic text-muted-foreground text-sm">
                             "{quote.text}"
-                            <div className="mt-1 text-xs font-semibold not-italic text-foreground/60">— {quote.author}</div>
+                            <div className="mt-1 text-xs font-bold not-italic text-foreground/60">— {quote.author}</div>
                         </div>
                     )}
                 </div>

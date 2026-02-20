@@ -1,6 +1,7 @@
 {
   "short_name": "INITIUM",
-  "name": "INITIUM - Life RPG",
+  "name": "INITIUM — Productivity Gamified",
+  "description": "Transform your productivity into an adventure. Gamify your goals, level up your life.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -22,6 +23,8 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#0a0a0f",
-  "background_color": "#0a0a0f"
+  "theme_color": "#8B5CF6",
+  "background_color": "#0A0A14",
+  "orientation": "portrait-primary",
+  "scope": "/"
 }

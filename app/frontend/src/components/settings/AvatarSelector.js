@@ -207,7 +207,7 @@ const AvatarSelector = ({ onSave }) => {
                             {/* UPLOAD */}
                             <TabsContent value="upload" className="flex-1 flex flex-col justify-center h-[300px] md:h-auto">
                                 <div
-                                    className="border-2 border-dashed border-white/10 rounded-2xl h-64 flex flex-col items-center justify-center p-6 transition-colors hover:border-primary/50 hover:bg-white/5 cursor-pointer"
+                                    className="border-2 border-dashed border-white/10 rounded-xl h-64 flex flex-col items-center justify-center p-6 transition-colors hover:border-primary/50 hover:bg-white/5 cursor-pointer"
                                     onClick={() => fileInputRef.current?.click()}
                                 >
                                     <input

@@ -9,7 +9,7 @@ const ProjectCard = ({ project, compact = false }) => {
         return (
             <div className="group rounded-xl border border-border/50 bg-card p-4 hover:bg-accent/50 transition-colors">
                 <div className="flex justify-between items-center mb-3">
-                    <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
+                    <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate pr-2">
                         {project.title}
                     </span>
                     <span className="text-xs text-muted-foreground font-mono bg-secondary px-1.5 py-0.5 rounded">
@@ -30,8 +30,8 @@ const ProjectCard = ({ project, compact = false }) => {
             <Card className="border border-border/50 bg-card hover:bg-accent/50 transition-all duration-300 group shadow-sm">
                 <CardContent className="p-5">
                     <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                            <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-foreground group-hover:text-primary transition-colors truncate">
                                 {project.title}
                             </h4>
                             {project.description && (
@@ -61,14 +61,23 @@ const ProjectCard = ({ project, compact = false }) => {
                     </div>
 
                     {/* Metadata */}
-                    {project.deadline && (
-                        <div className="mt-4 pt-4 border-t border-border/50">
-                            <p className="text-xs text-muted-foreground flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                                Échéance: {new Date(project.deadline).toLocaleDateString()}
+                    <div className="mt-4 pt-4 border-t border-border/50 flex flex-col gap-1">
+                        {project.startDate && (
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                                Début: {new Date(project.startDate).toLocaleDateString()}
                             </p>
-                        </div>
-                    )}
+                        )}
+                        {project.targetDate && (
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                                Échéance: {new Date(project.targetDate).toLocaleDateString()}
+                            </p>
+                        )}
+                        {!project.startDate && !project.targetDate && (
+                            <p className="text-[10px] text-muted-foreground italic">Pas de dates définies</p>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
         </Link>

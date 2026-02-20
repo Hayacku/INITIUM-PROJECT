@@ -21,7 +21,7 @@ const QuickActionFab = () => {
                 <div className="flex flex-col items-end space-y-3 animate-slide-in-up">
                     {actions.map((action, index) => (
                         <div key={index} className="flex items-center gap-2 group">
-                            <span className="text-xs font-medium bg-background/80 backdrop-blur px-2 py-1 rounded-md border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-xs font-medium bg-background/80 backdrop-blur px-2 py-1 rounded-lg border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
                                 {action.label}
                             </span>
                             <Button

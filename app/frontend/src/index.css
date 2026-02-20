@@ -3,49 +3,137 @@
 @tailwind utilities;
 
 @layer base {
+    @font-face {
+        font-family: 'Druk';
+        src: url('./assets/fonts/druk/DrukWideBold.ttf') format('truetype');
+        font-weight: bold;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Monument Extended';
+        src: url('./assets/fonts/monument/MonumentExtended-FreeForPersonalUse/MonumentExtended-Ultrabold.otf') format('opentype');
+        font-weight: 800;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Monument Extended';
+        src: url('./assets/fonts/monument/MonumentExtended-FreeForPersonalUse/MonumentExtended-Regular.otf') format('opentype');
+        font-weight: 400;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Neue Machina';
+        src: url('./assets/fonts/neue-machina/Neue Machina - Free for Personal Use/NeueMachina-Ultrabold.otf') format('opentype');
+        font-weight: 800;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Neue Machina';
+        src: url('./assets/fonts/neue-machina/Neue Machina - Free for Personal Use/NeueMachina-Regular.otf') format('opentype');
+        font-weight: 400;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Suisse Mono';
+        src: url('./assets/fonts/suisse/SuisseIntlMonoTrial-Regular.otf') format('opentype');
+        font-weight: 400;
+        font-style: normal;
+    }
+
     :root {
-        /* Default Theme: Cosmic Void */
+        /* Default: Basique (DA) style variables */
+        --background: 215 14% 14%;
+        --background-alt: 215 12% 19%;
+        --foreground: 200 60% 95%;
+        --card: 215 14% 16%;
+        --card-foreground: 200 60% 95%;
+        --primary: 201 56% 82%;
+        --primary-foreground: 215 14% 14%;
+        --secondary: 135 7% 41%;
+        --secondary-foreground: 200 60% 95%;
+        --muted: 215 10% 25%;
+        --muted-foreground: 215 10% 70%;
+        --accent: 201 56% 70%;
+        --accent-foreground: 215 14% 14%;
+        --destructive: 0 40% 40%;
+        --destructive-foreground: 200 60% 95%;
+        --border: 215 10% 20% / 0.15;
+        --input: 215 10% 18%;
+        --ring: 201 56% 82%;
+        --popover: 215 14% 16%;
+        --popover-foreground: 200 60% 95%;
+
+        --radius: 0.25rem;
+        --header-height: 4.5rem;
+        --sidebar-width: 18rem;
+        --sidebar-width-collapsed: 5rem;
+        --content-padding: 2rem;
+
+        --font-titles: 'Monument Extended', 'Druk', sans-serif;
+        --font-ui: 'Neue Machina', sans-serif;
+        --font-mono: 'Suisse Mono', monospace;
+    }
+
+    /* Light Theme */
+    [data-theme='light'] {
+        --background: 0 0% 100%;
+        --foreground: 220 20% 10%;
+        --card: 0 0% 98%;
+        --card-foreground: 220 20% 10%;
+        --primary: 215 25% 27%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 215 15% 50%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 210 20% 95%;
+        --muted-foreground: 215 15% 40%;
+        --border: 210 20% 90%;
+        --input: 210 20% 90%;
+        --ring: 215 25% 27%;
+        --popover: 0 0% 98%;
+        --popover-foreground: 220 20% 10%;
+    }
+
+    /* Dark Theme */
+    [data-theme='dark'] {
         --background: 230 15% 4%;
         --foreground: 210 20% 98%;
-
         --card: 230 15% 6%;
         --card-foreground: 210 20% 98%;
-
-        --popover: 230 15% 6%;
-        --popover-foreground: 210 20% 98%;
-
         --primary: 260 100% 65%;
         --primary-foreground: 210 20% 98%;
-
         --secondary: 190 90% 50%;
         --secondary-foreground: 230 15% 4%;
-
         --muted: 230 15% 12%;
-        --muted-foreground: 215 20% 65%;
-
-        --accent: 280 80% 60%;
-        --accent-foreground: 210 20% 98%;
-
-        --destructive: 0 85% 60%;
-        --destructive-foreground: 210 20% 98%;
-
+        --muted-foreground: 215 20% 75%;
         --border: 230 15% 12%;
         --input: 230 15% 12%;
         --ring: 260 100% 65%;
+        --popover: 230 15% 8%;
+        --popover-foreground: 210 20% 98%;
+    }
 
-        --radius: 0.5rem;
-        --header-height: 4rem;
-        --sidebar-width: 16rem;
-        /* 256px */
-        --sidebar-width-collapsed: 4.5rem;
-        /* 72px */
-        --content-padding: 1.5rem;
-
-        /* Semantic Colors */
-        --success: 142 70% 50%;
-        --warning: 45 90% 55%;
-        --info: 190 90% 55%;
-        --error: 0 85% 60%;
+    /* Terra Theme */
+    [data-theme='terra'] {
+        --background: 20 30% 8%;
+        --foreground: 30 40% 98%;
+        --card: 20 30% 12%;
+        --card-foreground: 30 40% 98%;
+        --primary: 25 90% 60%;
+        --primary-foreground: 30 40% 98%;
+        --secondary: 45 90% 60%;
+        --secondary-foreground: 20 30% 8%;
+        --muted: 20 30% 16%;
+        --muted-foreground: 30 20% 65%;
+        --border: 20 30% 16%;
+        --input: 20 30% 16%;
+        --ring: 25 90% 60%;
+        --popover: 20 30% 14%;
+        --popover-foreground: 30 40% 98%;
     }
 }
 
@@ -57,8 +145,39 @@
         --sidebar-width: 14rem;
     }
 
-    /* PREMIUM NOISE TEXTURE */
-    body::before {
+    /* Mobile-specific adjustments (iPhone SE/8: 375px) */
+    @media (max-width: 400px) {
+        :root {
+            font-size: 13px;
+            /* Slightly smaller base */
+            --content-padding: 0.75rem;
+            --header-height: 3.25rem;
+        }
+
+        .container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        h1 {
+            font-size: 1.35rem !important;
+            /* Reduction 3xl -> 1.35rem */
+            word-break: break-word;
+        }
+
+        .text-3xl {
+            font-size: 1.35rem !important;
+        }
+
+        /* Prevent overflow on cards */
+        .glass-card,
+        .card-modern {
+            padding: 0.75rem !important;
+        }
+    }
+
+    /* PREMIUM NOISE TEXTURE - Conditional */
+    :root.with-noise body::before {
         content: "";
         position: fixed;
         top: 0;
@@ -87,12 +206,34 @@
     }
 
     body {
-        @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-white;
-        font-family: var(--font-sans, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
-        /* Scrollbar track fix for consistency */
+        @apply antialiased selection:bg-primary/30 selection:text-white transition-colors duration-500;
+        background-color: hsl(var(--background));
+        background-image:
+            radial-gradient(circle at 50% -20%, hsl(var(--background-alt), 0.5), transparent),
+            linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.2));
+        color: hsl(var(--foreground));
+        font-family: var(--font-ui);
+        /* Scrollbar track fix */
         scrollbar-width: thin;
         scrollbar-color: hsl(var(--muted)) transparent;
-        -webkit-tap-highlight-color: transparent;
+        overflow-x: hidden;
+        line-height: 1.4;
+        /* Slightly more compact for mobile */
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    .title-system {
+        font-family: var(--font-titles);
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+        font-weight: 800;
+    }
+
+    .font-mono {
+        font-family: var(--font-mono);
     }
 }
 
@@ -100,33 +241,48 @@
 
     /* Ultra Glass Effect */
     .glass {
-        @apply bg-background/70 backdrop-blur-2xl border border-white/5 shadow-2xl;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        @apply border border-white/[0.15];
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
     }
 
     /* Card Modern */
     .glass-card,
     .card-modern {
-        @apply bg-[#0f111a]/80 backdrop-blur-3xl border border-white/[0.08] shadow-xl hover:bg-[#131620] hover:border-white/[0.12] transition-all duration-300 ease-out rounded-2xl;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        @apply border border-white/[0.12] transition-all duration-300 ease-out;
+        background: hsl(var(--card) / 0.7);
+        border-radius: var(--radius);
+    }
+
+    :root.with-asymm .glass-card,
+    :root.with-asymm .card-modern {
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
     }
 
     .glass-card:hover,
     .card-modern:hover {
-        box-shadow: 0 8px 30px hsl(var(--primary) / 0.15);
+        @apply border-primary/30;
+        box-shadow: 0 0 20px hsla(var(--primary) / 0.1);
+        background: hsl(var(--card) / 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
     }
 
     /* Input Modern */
     .input-modern {
-        @apply bg-white/5 border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all rounded-xl;
+        @apply bg-black/20 border-white/10 focus:border-primary/50 focus:ring-0 transition-all rounded-sm font-mono;
     }
 
     /* Text Glow */
     .text-glow {
-        text-shadow: 0 0 20px rgba(var(--primary), 0.5);
+        text-shadow: 0 0 15px hsla(var(--primary) / 0.4);
     }
 
     .text-glow-secondary {
-        text-shadow: 0 0 20px rgba(var(--secondary), 0.5);
+        text-shadow: 0 0 15px hsla(var(--secondary) / 0.4);
     }
 
     /* Scrollbar Webkit */
@@ -147,7 +303,7 @@
     @keyframes fade-in {
         from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(5px);
         }
 
         to {
@@ -209,5 +365,73 @@
 
     .pb-safe {
         padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* Page Transition Animation */
+    @keyframes page-enter {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .page-transition {
+        animation: page-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Safety overflow control */
+    @media (max-width: 640px) {
+
+        main,
+        .container,
+        #root {
+            overflow-x: hidden !important;
+            max-width: 100vw;
+        }
+
+        /* Add bottom padding to account for mobile dock */
+        body {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+    }
+
+    /* Mobile Dock Specifics */
+    .mobile-dock-active {
+        box-shadow: 0 0 15px hsla(var(--primary) / 0.3);
+    }
+
+    /* Button Micro-Animations */
+    button,
+    .btn,
+    [role="button"] {
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    button:hover:not(:disabled),
+    .btn:hover:not(:disabled),
+    [role="button"]:hover:not(:disabled) {
+        transform: scale(1.02);
+    }
+
+    button:active:not(:disabled),
+    .btn:active:not(:disabled),
+    [role="button"]:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+    /* Global Fix for Popover Superposition */
+    [data-radix-popper-content-wrapper] {
+        z-index: 100 !important;
+    }
+
+    .bg-popover {
+        background-color: hsl(var(--popover) / 0.98) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
     }
 }

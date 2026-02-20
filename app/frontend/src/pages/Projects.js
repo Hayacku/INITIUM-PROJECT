@@ -12,8 +12,13 @@ import {
   FileText,
   Calendar,
   Layout,
-  Tag
+  Tag,
+  LayoutGrid,
+  List
 } from 'lucide-react';
+import ProjectListView from '../components/projects/ProjectListView';
+import ProjectCalendarView from '../components/projects/ProjectCalendarView';
+import ProjectTasks from '../components/projects/ProjectTasks';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
@@ -35,8 +40,10 @@ const CATEGORIES = [
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(null); // Pour la vue détaillée
+  const [selectedProject, setSelectedProject] = useState(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editProject, setEditProject] = useState(null);
+  const [view, setView] = useState(() => localStorage.getItem('projects_view_preference') || 'grid');
 
   // Données liées au projet sélectionné
   const [linkedQuests, setLinkedQuests] = useState([]);
@@ -50,6 +57,7 @@ const Projects = () => {
     category: 'personal',
     priority: 'medium',
     status: 'active',
+    startDate: '',
     targetDate: ''
   });
 
@@ -88,7 +96,7 @@ const Projects = () => {
       const notes = allNotes.filter(n => n.linkedTo && n.linkedTo.includes(projectId));
       setLinkedNotes(notes);
 
-      // Charger Tâches (legacy Kanban)
+      // Charger Tâches (legacy Kanban + Subtasks)
       const tasks = await db.tasks.where('projectId').equals(projectId).toArray();
       setProjectTasks(tasks);
 
@@ -104,28 +112,57 @@ const Projects = () => {
     }
 
     try {
-      const newProject = {
-        id: `project-${Date.now()}`,
-        ...formData,
-        progress: 0,
-        createdAt: new Date()
-      };
+      if (editProject) {
+        await db.projects.update(editProject.id, {
+          ...formData,
+          updatedAt: new Date()
+        });
+        toast.success('Projet mis à jour !');
+        if (selectedProject?.id === editProject.id) {
+          setSelectedProject({ ...selectedProject, ...formData });
+        }
+      } else {
+        const newProject = {
+          id: `project-${Date.now()}`,
+          ...formData,
+          startDate: formData.startDate ? new Date(formData.startDate) : new Date(),
+          targetDate: formData.targetDate ? new Date(formData.targetDate) : null,
+          progress: 0,
+          createdAt: new Date()
+        };
 
-      await db.projects.add(newProject);
-      toast.success('Projet créé !');
+        await db.projects.add(newProject);
+        toast.success('Projet créé !');
+      }
       setIsCreateOpen(false);
+      setEditProject(null);
       setFormData({
         title: '',
         description: '',
         category: 'personal',
         priority: 'medium',
         status: 'active',
+        startDate: '',
         targetDate: ''
       });
       loadProjects();
     } catch (error) {
       toast.error('Erreur');
     }
+  };
+
+  const handleEdit = (project) => {
+    setEditProject(project);
+    setFormData({
+      title: project.title,
+      description: project.description || '',
+      category: project.category || 'personal',
+      priority: project.priority || 'medium',
+      status: project.status || 'active',
+      startDate: project.startDate ? format(new Date(project.startDate), 'yyyy-MM-dd') : '',
+      targetDate: project.targetDate ? format(new Date(project.targetDate), 'yyyy-MM-dd') : ''
+    });
+    setIsCreateOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -171,41 +208,76 @@ const Projects = () => {
           <p className="text-foreground/60">Gérez vos grands objectifs et tout ce qui s'y rattache</p>
         </div>
 
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <Dialog open={isCreateOpen} onOpenChange={(open) => {
+          setIsCreateOpen(open);
+          if (!open) setEditProject(null);
+        }}>
           <DialogTrigger asChild>
-            <Button size="lg" className="gap-2 shadow-lg hover:shadow-primary/20" data-testid="new-project-btn">
+            <Button size="lg" className="gap-2 shadow-lg hover:shadow-primary/20" data-testid="new-project-btn" onClick={() => {
+              setEditProject(null);
+              setFormData({
+                title: '',
+                description: '',
+                category: 'personal',
+                priority: 'medium',
+                status: 'active',
+                startDate: '',
+                targetDate: ''
+              });
+            }}>
               <Plus className="w-5 h-5" />
               Nouveau Projet
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Créer un nouveau projet</DialogTitle>
+              <DialogTitle>{editProject ? `Modifier: ${editProject.title}` : 'Créer un nouveau projet'}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Titre</label>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Titre</label>
                 <Input
+                  placeholder="Mon super projet..."
                   value={formData.title}
-                  onChange={e => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Ex: Lancer ma startup"
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Textarea
+                  placeholder="Détails et objectifs..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Catégorie</label>
-                  <Select value={formData.category} onValueChange={v => setFormData({ ...formData, category: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Catégorie</label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {CATEGORIES.map(c => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
+                      {CATEGORIES.map(cat => (
+                        <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Priorité</label>
-                  <Select value={formData.priority} onValueChange={v => setFormData({ ...formData, priority: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Priorité</label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="low">Basse</SelectItem>
                       <SelectItem value="medium">Moyenne</SelectItem>
@@ -215,74 +287,133 @@ const Projects = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium mb-1 block">Description</label>
-                <Textarea
-                  value={formData.description}
-                  onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Objectifs principaux..."
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Date de début</label>
+                  <Input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Date de fin (Deadline)</label>
+                  <Input
+                    type="date"
+                    value={formData.targetDate}
+                    onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium mb-1 block">Date cible</label>
-                <Input
-                  type="date"
-                  value={formData.targetDate}
-                  onChange={e => setFormData({ ...formData, targetDate: e.target.value })}
-                />
-              </div>
-
-              <Button onClick={handleCreate} className="w-full">Créer le projet</Button>
+              <Button onClick={handleCreate} className="w-full mt-4">
+                {editProject ? 'Enregistrer les modifications' : 'Créer le projet'}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
+      {/* View Switcher */}
+      {!selectedProject && (
+        <div className="flex justify-end mb-4">
+          <div className="inline-flex p-1 bg-muted/50 rounded-lg border border-border">
+            <Button
+              variant={view === 'grid' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="gap-2 px-3"
+              onClick={() => { setView('grid'); localStorage.setItem('projects_view_preference', 'grid'); }}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span className="hidden sm:inline">Grille</span>
+            </Button>
+            <Button
+              variant={view === 'list' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="gap-2 px-3"
+              onClick={() => { setView('list'); localStorage.setItem('projects_view_preference', 'list'); }}
+            >
+              <List className="w-4 h-4" />
+              <span className="hidden sm:inline">Liste</span>
+            </Button>
+            <Button
+              variant={view === 'calendar' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="gap-2 px-3"
+              onClick={() => { setView('calendar'); localStorage.setItem('projects_view_preference', 'calendar'); }}
+            >
+              <Calendar className="w-4 h-4" />
+              <span className="hidden sm:inline">Calendrier</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Main Content : Grid vs Detail */}
       {!selectedProject ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map(project => {
-            const category = CATEGORIES.find(c => c.id === project.category) || CATEGORIES[4];
-            return (
-              <div
-                key={project.id}
-                onClick={() => setSelectedProject(project)}
-                className="glass-card p-6 rounded-xl hover:scale-[1.02] transition-all cursor-pointer group border-l-4"
-                style={{ borderLeftColor: category.color.split(' ')[1].replace('text-', '') }} // Hack couleur
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${category.color}`}>
-                      {category.label}
-                    </span>
-                    <h3 className="text-xl font-bold mt-2 group-hover:text-primary transition-colors">{project.title}</h3>
-                  </div>
-                  {project.priority === 'high' && <span className="text-red-500 animate-pulse">●</span>}
-                </div>
-
-                <p className="text-sm text-foreground/60 line-clamp-2 mb-6 h-10">
-                  {project.description || 'Aucune description'}
-                </p>
-
-                <div className="flex justify-between items-end">
-                  <div className="w-full mr-4">
-                    <div className="flex justify-between text-xs mb-1 text-foreground/50">
-                      <span>Progression</span>
-                      <span>{project.progress}%</span>
+        <div className="animate-in fade-in duration-500">
+          {view === 'grid' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map(project => {
+                const category = CATEGORIES.find(c => c.id === project.category) || CATEGORIES[4];
+                return (
+                  <div
+                    key={project.id}
+                    onClick={() => setSelectedProject(project)}
+                    className="glass-card p-6 rounded-xl hover:scale-[1.02] transition-all cursor-pointer group border-l-4"
+                    style={{ borderLeftColor: category.color.split(' ')[1].replace('text-', '') }}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${category.color}`}>
+                          {category.label}
+                        </span>
+                        <h3 className="text-xl font-bold mt-2 group-hover:text-primary transition-colors">{project.title}</h3>
+                      </div>
+                      {project.priority === 'high' && <span className="text-red-500 animate-pulse">●</span>}
                     </div>
-                    <Progress value={project.progress} className="h-2" />
-                  </div>
-                  <div className="flex -space-x-2">
-                    {/* Avatars ou icônes décoratives */}
-                    <div className="w-8 h-8 rounded-full bg-background border-2 border-white/10 flex items-center justify-center text-[10px]">
-                      <Layout className="w-4 h-4 text-foreground/50" />
+
+                    <p className="text-sm text-foreground/60 line-clamp-2 mb-6 h-10">
+                      {project.description || 'Aucune description'}
+                    </p>
+
+                    <div className="flex justify-between items-end">
+                      <div className="w-full mr-4">
+                        <div className="flex justify-between text-xs mb-1 text-foreground/50">
+                          <span>Progression</span>
+                          <span>{project.progress}%</span>
+                        </div>
+                        <Progress value={project.progress} className="h-2" />
+                      </div>
+                      <div className="flex -space-x-2">
+                        <div className="w-8 h-8 rounded-full bg-background border-2 border-white/10 flex items-center justify-center text-[10px]">
+                          <Layout className="w-4 h-4 text-foreground/50" />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          )}
+
+          {view === 'list' && (
+            <ProjectListView
+              projects={projects}
+              categories={CATEGORIES}
+              onSelect={setSelectedProject}
+              onDelete={handleDelete}
+            />
+          )}
+
+          {view === 'calendar' && (
+            <ProjectCalendarView
+              projects={projects}
+              categories={CATEGORIES}
+              onSelect={setSelectedProject}
+            />
+          )}
+
           {projects.length === 0 && (
             <div className="col-span-full text-center py-20 text-foreground/30">
               <FolderKanban className="w-20 h-20 mx-auto mb-4" />
@@ -306,9 +437,14 @@ const Projects = () => {
                   <p className="text-lg text-foreground/70 max-w-2xl">{selectedProject.description}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(selectedProject.id)}>
-                    <Trash2 className="w-4 h-4 mr-2" /> Supprimer
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(selectedProject)}>
+                      <Plus className="w-4 h-4 mr-2 rotate-45" /> Modifier
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(selectedProject.id)}>
+                      <Trash2 className="w-4 h-4 mr-2" /> Supprimer
+                    </Button>
+                  </div>
                   <div className="text-right mt-2">
                     <span className="text-3xl font-bold text-primary">{calculateTotalProgress()}%</span>
                     <p className="text-xs text-foreground/50 uppercase">Progression Globale</p>
@@ -386,10 +522,7 @@ const Projects = () => {
             </TabsContent>
 
             <TabsContent value="tasks">
-              <div className="bg-white/5 p-4 rounded-xl text-center">
-                <p className="text-sm text-foreground/60">Le Kanban complet est disponible pour une gestion fine des micro-tâches.</p>
-                {/* Intégrer le composant Kanban ici si besoin */}
-              </div>
+              <ProjectTasks projectId={selectedProject.id} />
             </TabsContent>
 
             <TabsContent value="notes">

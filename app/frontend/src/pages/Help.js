@@ -197,7 +197,7 @@ const Help = () => {
                         <div className="p-6 flex-1 overflow-y-auto">
                             <TabsContent value="feedback" className="mt-0 space-y-4 animate-in fade-in zoom-in-95">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <h2 className="text-xl font-bold">Envoyer un commentaire</h2>
+                                    <h2 className="text-2xl font-bold">Envoyer un commentaire</h2>
                                 </div>
                                 <p className="text-sm text-muted-foreground mb-6">
                                     Utilisez ce formulaire pour signaler des bugs, suggérer des fonctionnalités ou exercer vos droits RGPD.
@@ -237,7 +237,7 @@ const Help = () => {
 
                             <TabsContent value="legal" className="mt-0 animate-in fade-in zoom-in-95">
                                 <div className="prose prose-invert prose-sm max-w-none">
-                                    <h2 className="text-xl font-bold mb-4 text-primary">Mentions Légales</h2>
+                                    <h2 className="text-2xl font-bold mb-4 text-primary">Mentions Légales</h2>
                                     <div className="whitespace-pre-line leading-relaxed text-muted-foreground">
                                         {LEGAL_MENTIONS}
                                     </div>
@@ -246,7 +246,7 @@ const Help = () => {
 
                             <TabsContent value="cgu" className="mt-0 animate-in fade-in zoom-in-95">
                                 <div className="prose prose-invert prose-sm max-w-none">
-                                    <h2 className="text-xl font-bold mb-4 text-primary">Conditions Générales d'Utilisation</h2>
+                                    <h2 className="text-2xl font-bold mb-4 text-primary">Conditions Générales d'Utilisation</h2>
                                     <div className="whitespace-pre-line leading-relaxed text-muted-foreground p-4 bg-white/5 rounded-xl border border-white/5">
                                         {CGU_CONTENT}
                                     </div>
@@ -255,7 +255,7 @@ const Help = () => {
 
                             <TabsContent value="privacy" className="mt-0 animate-in fade-in zoom-in-95">
                                 <div className="prose prose-invert prose-sm max-w-none">
-                                    <h2 className="text-xl font-bold mb-4 text-primary">Politique de Confidentialité & Cookies</h2>
+                                    <h2 className="text-2xl font-bold mb-4 text-primary">Politique de Confidentialité & Cookies</h2>
                                     <div className="whitespace-pre-line leading-relaxed text-muted-foreground p-4 bg-white/5 rounded-xl border border-white/5">
                                         {PRIVACY_CONTENT}
                                     </div>

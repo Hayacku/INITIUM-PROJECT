@@ -156,7 +156,7 @@ const Auth = () => {
         <Card className="border-0 bg-transparent shadow-none">
           <CardHeader className="space-y-1 text-center pb-8">
             <div className="flex items-center justify-center mb-6">
-              <div className="p-4 bg-gradient-to-br from-primary to-secondary rounded-2xl shadow-lg shadow-primary/20 transform hover:scale-110 transition-transform duration-300">
+              <div className="p-4 bg-gradient-to-br from-primary to-secondary rounded-xl shadow-lg shadow-primary/20 transform hover:scale-110 transition-transform duration-300">
                 <Rocket className="h-8 w-8 text-white" />
               </div>
             </div>

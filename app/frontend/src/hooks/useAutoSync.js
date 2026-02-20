@@ -19,6 +19,7 @@ export const useAutoSync = () => {
             if (!lastSync || (now - parseInt(lastSync) > 15 * 60 * 1000)) {
                 syncAll().then(() => {
                     localStorage.setItem('last_auto_sync', now.toString());
+                    // toast.success("Données synchronisées avec le cloud"); // Optional toast to avoid spam on load
                 }).catch(err => {
                     console.error('Auto-sync failed:', err);
                 });

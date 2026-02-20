@@ -1,310 +1,325 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React from 'react';
 import { db } from '../lib/db';
-import { THEMES, applyTheme, getCurrentTheme } from '../lib/themes';
-import {
-    Settings as SettingsIcon,
-    Database,
-    Download,
-    Upload,
-    Trash2,
-    ShieldAlert,
-    Save,
-    Palette,
-    Layout,
-    User,
-    Check
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
+import { useHistory } from '../contexts/HistoryContext';
+import { useApp } from '../contexts/AppContext';
 import { useCloudSync } from '../hooks/useCloudSyncNew';
 import {
+    Settings as SettingsIcon,
     Cloud,
-    CloudOff,
-    RefreshCw,
-    AlertCircle,
-    Zap
+    Trash2,
+    Database,
+    Moon,
+    Sun,
+    Monitor,
+    LogOut,
+    AlertTriangle,
+    CheckCircle2,
+    History,
+    Bug,
+    Terminal,
+    Loader2
 } from 'lucide-react';
-import AvatarSelector from '../components/settings/AvatarSelector';
-import AppearanceSettings from '../components/settings/AppearanceSettings';
+import { DeveloperService } from '../services/DeveloperService';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Separator } from '../components/ui/separator';
+import { Switch } from '../components/ui/switch';
+import { Label } from '../components/ui/label';
+import { toast } from 'sonner';
+import { applyTheme, getCurrentTheme, THEMES } from '../lib/themes';
 
 const Settings = () => {
-    const fileInputRef = useRef(null);
-    const [theme, setTheme] = useState(getCurrentTheme());
-    const { user, isGuest } = useAuth();
-    const { syncing, lastSync, syncAll, migrateToCloud } = useCloudSync();
+    const { user, logout } = useAuth();
+    const { history } = useHistory();
+    const { compactMode, toggleCompactMode } = useApp();
+    const { syncStatus, lastSyncTime, syncAll, error } = useCloudSync();
 
-    // Data Export/Import Logic
-    const handleExport = async () => {
+    const [devMode, setDevMode] = React.useState(localStorage.getItem('devMode') === 'true');
+    const [isGenerating, setIsGenerating] = React.useState(false);
+    const [genProgress, setGenProgress] = React.useState({ percent: 0, status: '' });
+
+    const handleDeleteExamples = async () => {
+        if (window.confirm('Voulez-vous vraiment supprimer toutes les données exemples ?')) {
+            try {
+                // Delete items explicitly marked as example
+                await db.quests.where('isExample').equals(1).delete(); // Dexie boolean is 1/0 sometimes or needs check
+                // Fallback for older items not marked, or just rely on 'isExample'
+                // For now, let's assume we update DB to mark them.
+
+                // Advanced: delete by ID pattern 'quest-1', 'habit-1' etc if logical
+                const exampleIds = ['quest-1', 'quest-2', 'quest-3', 'habit-1', 'habit-2', 'habit-3', 'project-1', 'project-2'];
+                await db.quests.bulkDelete(exampleIds);
+                await db.habits.bulkDelete(exampleIds);
+                await db.projects.bulkDelete(exampleIds);
+
+                toast.success('Données exemples supprimées');
+                // Trigger reload or state update if possible
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (err) {
+                console.error(err);
+                toast.error('Erreur lors de la suppression');
+            }
+        }
+    };
+
+    const handleThemeChange = (theme) => {
+        applyTheme(theme);
+        toast.success(`Thème ${theme} appliqué`);
+    };
+
+    const toggleDevMode = (checked) => {
+        setDevMode(checked);
+        localStorage.setItem('devMode', checked);
+        if (checked) {
+            toast.info("Mode Développeur activé");
+        }
+    };
+
+    const handleGenerateData = async () => {
+        if (!window.confirm("CETTE ACTION VA SUPPRIMER VOS DONNÉES ACTUELLES et générer un an d'historique test. Continuer ?")) {
+            return;
+        }
+
+        setIsGenerating(true);
         try {
-            const data = {
-                meta: { version: 1, date: new Date(), app: 'INITIUM' },
-                quests: await db.quests.toArray(),
-                habits: await db.habits.toArray(),
-                notes: await db.notes.toArray(),
-                events: await db.events.toArray(),
-                projects: await db.projects.toArray(),
-                training: await db.training.toArray(),
-                analytics: await db.analytics.toArray(),
-                feedback: await db.feedback.toArray(),
-            };
-
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `initium-backup-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            toast.success('Sauvegarde téléchargée avec succès');
-        } catch (error) {
-            console.error(error);
-            toast.error("Erreur lors de l'export");
+            await DeveloperService.generateYearOfData((percent, status) => {
+                setGenProgress({ percent, status });
+            });
+            toast.success("Données générées avec succès !");
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (err) {
+            console.error(err);
+            toast.error("Erreur lors de la génération");
+            setIsGenerating(false);
         }
-    };
-
-    const handleImport = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                if (!data.meta || data.meta.app !== 'INITIUM') {
-                    toast.error("Format de fichier invalide");
-                    return;
-                }
-                if (!window.confirm("Attention : Cette action va écouler toutes les données actuelles et les remplacer par la sauvegarde. Continuer ?")) {
-                    return;
-                }
-                await db.transaction('rw', db.tables, async () => {
-                    await Promise.all(db.tables.map(table => table.clear()));
-                    if (data.quests) await db.quests.bulkAdd(data.quests);
-                    if (data.habits) await db.habits.bulkAdd(data.habits);
-                    if (data.notes) await db.notes.bulkAdd(data.notes);
-                    if (data.events) await db.events.bulkAdd(data.events);
-                    if (data.projects) await db.projects.bulkAdd(data.projects);
-                    if (data.training) await db.training.bulkAdd(data.training);
-                    if (data.analytics) await db.analytics.bulkAdd(data.analytics);
-                    if (data.feedback) await db.feedback.bulkAdd(data.feedback);
-                });
-                toast.success("Restauration terminée !");
-                setTimeout(() => window.location.reload(), 1500);
-            } catch (error) {
-                console.error(error);
-                toast.error("Erreur, fichier corrompu ?");
-            }
-        };
-        reader.readAsText(file);
-    };
-
-    const handleReset = async () => {
-        if (window.confirm("ÊTES-VOUS SÛR ? Toutes vos données seront définitivement effacées. Cette action est irréversible.")) {
-            try {
-                await db.delete();
-                await db.open();
-                localStorage.clear();
-                window.location.reload();
-            } catch (e) {
-                toast.error("Erreur lors du reset");
-            }
-        }
-    };
-
-    const changeTheme = (newTheme) => {
-        applyTheme(newTheme);
-        setTheme(newTheme);
-        toast.success(`Thème ${THEMES[newTheme].label} appliqué`);
     };
 
     return (
-        <div className="space-y-6 animate-fade-in pb-12" data-testid="settings-page">
-            {/* Header */}
-            <div>
-                <h1 className="text-4xl sm:text-5xl font-bold mb-2 flex items-center gap-3" data-testid="settings-title">
-                    <SettingsIcon className="w-10 h-10 text-primary" />
+        <div className="space-y-6 pb-20 max-w-4xl mx-auto" data-testid="settings-page">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold flex items-center gap-3">
+                    <SettingsIcon className="w-8 h-8 text-primary" />
                     Paramètres
                 </h1>
-                <p className="text-muted-foreground text-lg">Personnalisation et maintenance du système.</p>
+                <p className="text-muted-foreground">Personnalisez votre expérience INITIUM</p>
             </div>
 
-            <Tabs defaultValue="appearance" className="space-y-6">
-                <TabsList className="bg-white/5 border border-white/5 p-1 rounded-xl w-full sm:w-auto grid grid-cols-3 sm:inline-flex">
-                    <TabsTrigger value="appearance" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white"><Palette className="w-4 h-4 mr-2" /> Apparence</TabsTrigger>
-                    <TabsTrigger value="data" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white"><Database className="w-4 h-4 mr-2" /> Données</TabsTrigger>
-                    <TabsTrigger value="system" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white"><Layout className="w-4 h-4 mr-2" /> Système</TabsTrigger>
-                </TabsList>
+            {/* CLOUD SYNC STATUS */}
+            <Card className="border-border/60">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Cloud className="w-5 h-5 text-blue-500" />
+                        Synchronisation Cloud
+                    </CardTitle>
+                    <CardDescription>État de la connexion avec les serveurs INITIUM</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-accent/30 rounded-lg border border-border/50">
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2 font-medium">
+                                Statut
+                                {syncStatus === 'success' && <span className="text-green-500 flex items-center text-xs"><CheckCircle2 className="w-3 h-3 mr-1" /> Connecté</span>}
+                                {syncStatus === 'syncing' && <span className="text-blue-500 text-xs">Synchronisation...</span>}
+                                {syncStatus === 'error' && <span className="text-red-500 flex items-center text-xs"><AlertTriangle className="w-3 h-3 mr-1" /> Erreur</span>}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                                Dernière synchro : {lastSyncTime ? new Date(lastSyncTime).toLocaleString() : 'Jamais'}
+                            </div>
+                            {error && <div className="text-xs text-red-500 mt-1">{error.message}</div>}
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => syncAll()} disabled={syncStatus === 'syncing'}>
+                            Forcer la synchro
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
 
-                {/* --- APPEARANCE TAB --- */}
-                <TabsContent value="appearance" className="space-y-6 animate-in fade-in slide-in-from-bottom-5">
+            {/* DATA MANAGEMENT */}
+            <Card className="border-border/60">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Database className="w-5 h-5 text-purple-500" />
+                        Données
+                    </CardTitle>
+                    <CardDescription>Gérez votre stockage local</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                            <Label>Supprimer les exemples</Label>
+                            <p className="text-sm text-muted-foreground">Retire les quêtes et projets de démonstration.</p>
+                        </div>
+                        <Button variant="destructive" size="sm" onClick={handleDeleteExamples}>
+                            <Trash2 className="w-4 h-4 mr-2" /> Supprimer
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
 
-                    {/* AVATAR SECTION */}
-                    <div className="space-y-2">
-                        <h3 className="text-lg font-bold ml-1">Personnalisation du Profil</h3>
-                        <AvatarSelector onSave={async (url) => {
-                            // Update user in DB or Context
-                            // This logic can be moved to context later
-                            if (user && user.id) {
-                                try {
-                                    await db.users.update(user.id, { photoURL: url });
-                                    // Trigger reload or context update if needed
-                                    // For now relying on local state update in AvatarSelector
-                                } catch (e) { console.error(e); }
-                            }
-                        }} />
+            {/* APPEARANCE */}
+            <Card className="border-border/60">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Monitor className="w-5 h-5 text-orange-500" />
+                        Apparence
+                    </CardTitle>
+                    <CardDescription>Interface et Thèmes</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                        <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                            <Monitor className="w-4 h-4" /> Sélection du Thème
+                        </Label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {Object.values(THEMES).filter(t => ['basique', 'dark', 'light', 'terra'].includes(t.id)).map((theme) => (
+                                <button
+                                    key={theme.id}
+                                    onClick={() => handleThemeChange(theme.id)}
+                                    className={`relative flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 group ${getCurrentTheme() === theme.id ? 'border-primary bg-primary/5' : 'border-border/40 hover:border-border'
+                                        }`}
+                                >
+                                    <div className={`w-full h-12 rounded md ${theme.preview} border border-white/10`} />
+                                    <span className={`text-xs font-bold uppercase tracking-tight ${getCurrentTheme() === theme.id ? 'text-primary' : 'text-muted-foreground'}`}>
+                                        {theme.label}
+                                    </span>
+                                    {getCurrentTheme() === theme.id && (
+                                        <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full p-0.5">
+                                            <CheckCircle2 className="w-3 h-3" />
+                                        </div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground italic mt-2">
+                            * Le thème <strong>Basique</strong> correspond à la Direction Artistique officielle.
+                        </p>
                     </div>
 
-                    <AppearanceSettings />
-                </TabsContent>
+                    <Separator className="bg-border/40" />
 
-                {/* --- DATA TAB --- */}
-                <TabsContent value="data" className="space-y-6 animate-in fade-in slide-in-from-bottom-5">
-                    <Card className="glass-card">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Database className="w-5 h-5 text-primary" /> Gestion des Sauvegardes</CardTitle>
-                            <CardDescription>Vos données sont précieuses. Exportez-les régulièrement.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Button onClick={handleExport} className="w-full h-auto py-6 flex flex-col items-center gap-2 border-dashed" variant="outline" data-testid="export-btn">
-                                    <Download className="w-6 h-6 mb-1" />
-                                    <span>Sauvegarder (Export JSON)</span>
-                                    <span className="text-xs font-normal text-muted-foreground">Télécharger une copie locale</span>
-                                </Button>
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                            <Label>Vue compacte</Label>
+                            <p className="text-sm text-muted-foreground">Réduire l'espacement et la taille globale des éléments.</p>
+                        </div>
+                        <Switch checked={compactMode} onCheckedChange={toggleCompactMode} />
+                    </div>
+                </CardContent>
+            </Card>
 
-                                <div className="relative">
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        onChange={handleImport}
-                                        className="hidden"
-                                        accept=".json"
-                                    />
-                                    <Button onClick={() => fileInputRef.current.click()} className="w-full h-auto py-6 flex flex-col items-center gap-2 border-dashed" variant="secondary" data-testid="import-btn">
-                                        <Upload className="w-6 h-6 mb-1" />
-                                        <span>Restaurer (Import JSON)</span>
-                                        <span className="text-xs font-normal text-muted-foreground">Remplacer les données actuelles</span>
-                                    </Button>
+            {/* HISTORY */}
+            <Card className="border-border/60">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <History className="w-5 h-5 text-blue-400" />
+                        Historique récent
+                    </CardTitle>
+                    <CardDescription>Vos 10 dernières actions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-2">
+                        {history.length === 0 && <p className="text-sm text-muted-foreground">Aucune action récente.</p>}
+                        {history.map((action) => (
+                            <div key={action.id} className="flex items-center justify-between text-sm p-2 bg-accent/20 rounded">
+                                <span>{action.description}</span>
+                                <span className="text-xs text-muted-foreground">{new Date(action.timestamp).toLocaleTimeString()}</span>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* DEVELOPER MODE */}
+            <Card className={`border-dashed border-primary/40 bg-primary/5 transition-all ${devMode ? 'ring-1 ring-primary/20' : ''}`}>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Bug className="w-5 h-5 text-primary" />
+                        Mode Développeur
+                    </CardTitle>
+                    <CardDescription>Outils de test et débogage</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-2 rounded-md hover:bg-primary/5 cursor-pointer" onClick={() => toggleDevMode(!devMode)}>
+                        <div className="space-y-0.5 pointer-events-none">
+                            <Label className="cursor-pointer">Activer le mode développeur</Label>
+                            <p className="text-xs text-muted-foreground">Affiche les options avancées de test.</p>
+                        </div>
+                        <Switch
+                            checked={devMode}
+                            onCheckedChange={toggleDevMode}
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+
+                    {devMode && (
+                        <>
+                            <Separator className="bg-primary/20" />
+                            <div className="space-y-4">
+                                <div className="p-4 bg-background rounded-lg border border-primary/20 flex flex-col gap-3">
+                                    <h4 className="flex items-center gap-2 text-sm font-bold">
+                                        <Terminal className="w-4 h-4" />
+                                        Génération de Données Tests
+                                    </h4>
+                                    <p className="text-xs text-muted-foreground">
+                                        Peuple la base de données avec 1 an d'historique (Analytics, Quests, Habits, etc.).
+                                        <br /><strong className="text-destructive">Attention: Écrase les données existantes.</strong>
+                                    </p>
+
+                                    {isGenerating ? (
+                                        <div className="space-y-2 mt-2">
+                                            <div className="flex justify-between text-[10px] mb-1">
+                                                <span>{genProgress.status}</span>
+                                                <span>{genProgress.percent}%</span>
+                                            </div>
+                                            <div className="w-full bg-accent/30 rounded-full h-2 overflow-hidden">
+                                                <div
+                                                    className="bg-primary h-full transition-all duration-300"
+                                                    style={{ width: `${genProgress.percent}%` }}
+                                                />
+                                            </div>
+                                            <p className="text-center text-[10px] animate-pulse">Ne fermez pas la page...</p>
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            className="border-primary/50 hover:bg-primary/10 w-full"
+                                            onClick={handleGenerateData}
+                                        >
+                                            Générer 1 an de données
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </>
+                    )}
+                </CardContent>
+            </Card>
 
-                    {/* --- CLOUD SYNC SECTION --- */}
-                    <Card className="glass-card border-primary/20 bg-primary/5">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Cloud className="w-5 h-5 text-primary" />
-                                Synchronisation Cloud
-                            </CardTitle>
-                            <CardDescription>
-                                Synchronisez vos données avec votre compte INITIUM pour les retrouver partout.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {isGuest ? (
-                                <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-start gap-4">
-                                    <AlertCircle className="w-6 h-6 text-yellow-500 shrink-0 mt-1" />
-                                    <div className="space-y-1">
-                                        <p className="font-bold text-yellow-500">Mode Invité Actif</p>
-                                        <p className="text-sm text-yellow-200/60">
-                                            La synchronisation cloud est désactivée en mode invité.
-                                            Connectez-vous à un compte pour activer la sauvegarde automatique.
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                                                <Cloud className="w-5 h-5 text-green-500" />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold">Statut : Connecté</p>
-                                                <p className="text-xs text-muted-foreground">Compte : {user?.email}</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-muted-foreground">Dernière synchro</p>
-                                            <p className="text-sm font-mono">{lastSync ? lastSync.toLocaleTimeString() : 'Jamais'}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <Button
-                                            onClick={syncAll}
-                                            disabled={syncing}
-                                            className="gap-2 h-12"
-                                        >
-                                            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-                                            Synchroniser maintenant
-                                        </Button>
-
-                                        <Button
-                                            onClick={migrateToCloud}
-                                            disabled={syncing}
-                                            variant="outline"
-                                            className="gap-2 h-12 border-primary/30 hover:bg-primary/10"
-                                        >
-                                            <Zap className="w-4 h-4 text-primary" />
-                                            Migrer les données locales
-                                        </Button>
-                                    </div>
-
-                                    <p className="text-[10px] text-center text-muted-foreground italic">
-                                        Note: La synchronisation fusionne vos données locales avec le serveur. La migration envoie toutes vos données locales actuelles vers le cloud.
-                                    </p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* --- SYSTEM TAB --- */}
-                <TabsContent value="system" className="space-y-6 animate-in fade-in slide-in-from-bottom-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card className="glass-card">
-                            <CardHeader>
-                                <CardTitle>Informations</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2 text-sm">
-                                <div className="flex justify-between p-2 bg-white/5 rounded">
-                                    <span className="text-muted-foreground">Version</span>
-                                    <span className="font-mono">2.5.0 PWA</span>
-                                </div>
-                                <div className="flex justify-between p-2 bg-white/5 rounded">
-                                    <span className="text-muted-foreground">Build</span>
-                                    <span className="font-mono">Production</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="glass-card border-red-500/20 bg-red-500/5">
-                            <CardHeader>
-                                <CardTitle className="text-red-500 flex items-center gap-2"><ShieldAlert className="w-5 h-5" /> Zone de Danger</CardTitle>
-                                <CardDescription className="text-red-200/60">Actions destructrices irréversibles.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <Button
-                                    variant="destructive"
-                                    className="w-full gap-2"
-                                    onClick={handleReset}
-                                    data-testid="reset-btn"
-                                >
-                                    <Trash2 className="w-4 h-4" /> Réinitialisation d'Usine
-                                </Button>
-                            </CardContent>
-                        </Card>
+            {/* ACCOUNT */}
+            <Card className="border-border/60">
+                <CardHeader>
+                    <CardTitle>Compte</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+                                {user?.username?.charAt(0) || 'U'}
+                            </div>
+                            <div>
+                                <p className="font-medium">{user?.username}</p>
+                                <p className="text-xs text-muted-foreground">{user?.email}</p>
+                            </div>
+                        </div>
+                        <Button variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={logout}>
+                            <LogOut className="w-4 h-4 mr-2" /> Déconnexion
+                        </Button>
                     </div>
-                </TabsContent>
-            </Tabs>
+                </CardContent>
+            </Card>
+
         </div>
     );
 };

@@ -72,7 +72,7 @@ const Onboarding = () => {
               <Check className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h4 className="font-semibold">Hiérarchie de quêtes</h4>
+              <h4 className="font-bold">Hiérarchie de quêtes</h4>
               <p className="text-sm text-muted-foreground">
                 Organisez vos objectifs en quêtes principales et secondaires
               </p>
@@ -83,7 +83,7 @@ const Onboarding = () => {
               <Check className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h4 className="font-semibold">Progression multi-facteur</h4>
+              <h4 className="font-bold">Progression multi-facteur</h4>
               <p className="text-sm text-muted-foreground">
                 Suivez votre avancement avec des sous-tâches et jalons
               </p>
@@ -94,7 +94,7 @@ const Onboarding = () => {
               <Check className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h4 className="font-semibold">XP équilibré</h4>
+              <h4 className="font-bold">XP équilibré</h4>
               <p className="text-sm text-muted-foreground">
                 Gagnez des points d'expérience basés sur l'effort et la régularité
               </p>
@@ -114,7 +114,7 @@ const Onboarding = () => {
               <Dumbbell className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h4 className="font-semibold">Suivi des streaks</h4>
+              <h4 className="font-bold">Suivi des streaks</h4>
               <p className="text-sm text-muted-foreground">
                 Maintenez vos séries et battez vos records personnels
               </p>
@@ -125,7 +125,7 @@ const Onboarding = () => {
               <Calendar className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h4 className="font-semibold">Objectifs hebdomadaires</h4>
+              <h4 className="font-bold">Objectifs hebdomadaires</h4>
               <p className="text-sm text-muted-foreground">
                 Définissez des fréquences personnalisées (ex: 5x/semaine)
               </p>
@@ -136,7 +136,7 @@ const Onboarding = () => {
               <TrendingUp className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h4 className="font-semibold">Visualisation de cohérence</h4>
+              <h4 className="font-bold">Visualisation de cohérence</h4>
               <p className="text-sm text-muted-foreground">
                 Analysez vos patterns avec graphiques et heatmaps
               </p>

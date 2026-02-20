@@ -10,33 +10,33 @@
 export const colors = {
     // Primary Brand Colors
     primary: {
-        50: '260 100% 95%',
-        100: '260 100% 90%',
-        200: '260 100% 85%',
-        300: '260 100% 75%',
-        400: '260 100% 70%',
-        500: '260 100% 65%',   // Main brand color
-        600: '260 100% 55%',
-        700: '260 90% 45%',
-        800: '260 80% 35%',
-        900: '260 70% 25%',
-        DEFAULT: '260 100% 65%'
+        50: '201 56% 95%',
+        100: '201 56% 90%',
+        200: '201 56% 85%',
+        300: '201 56% 82%',   // Main brand color (Arctic Blue)
+        400: '201 56% 75%',
+        500: '201 56% 70%',
+        600: '201 56% 60%',
+        700: '201 56% 50%',
+        800: '201 56% 40%',
+        900: '201 56% 30%',
+        DEFAULT: '201 56% 82%'
     },
 
     // Neutral Grays (Dark Theme Base)
     neutral: {
-        50: '230 15% 98%',
-        100: '230 15% 92%',
-        200: '230 15% 80%',
-        300: '230 15% 65%',
-        400: '230 15% 50%',
-        500: '230 15% 35%',
-        600: '230 15% 20%',
-        700: '230 15% 12%',
-        800: '230 15% 6%',
-        900: '230 15% 4%',     // Main background
-        950: '230 15% 2%',
-        DEFAULT: '230 15% 50%'
+        50: '215 14% 98%',
+        100: '215 14% 92%',
+        200: '215 14% 80%',
+        300: '215 14% 65%',
+        400: '215 14% 50%',
+        500: '215 14% 35%',
+        600: '215 14% 20%',
+        700: '215 14% 16%',
+        800: '215 14% 14%',     // Main background (Graphite Deep)
+        900: '215 12% 12%',
+        950: '215 12% 10%',
+        DEFAULT: '215 14% 50%'
     },
 
     // Semantic Colors
@@ -77,9 +77,10 @@ export const colors = {
 
 export const typography = {
     fonts: {
-        sans: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        mono: '"JetBrains Mono", "Fira Code", Consolas, monospace',
-        display: '"Inter", sans-serif'
+        titles: '"Monument Extended", "Druk", sans-serif',
+        sans: '"Neue Machina", system-ui, sans-serif',
+        mono: '"Suisse Mono", monospace',
+        display: '"Monument Extended", sans-serif'
     },
 
     sizes: {

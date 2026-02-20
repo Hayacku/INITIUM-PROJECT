@@ -19,6 +19,10 @@ export const AppProvider = ({ children }) => {
   const [appearance, setAppearance] = useState({});
   const [loading, setLoading] = useState(true);
   const [zenMode, setZenMode] = useState(false);
+  const [compactMode, setCompactMode] = useState(false);
+  const [levelUpData, setLevelUpData] = useState(null); // { oldLevel, newLevel, rewards }
+  const [activeTitle, setActiveTitle] = useState('Initié');
+  const [activeEffect, setActiveEffect] = useState('none');
 
   useEffect(() => {
     (async () => {
@@ -26,10 +30,15 @@ export const AppProvider = ({ children }) => {
         await initializeData();
 
         // Load Theme
-        const themeSetting = await db.settings.get('theme');
-        if (themeSetting) {
-          setTheme(themeSetting.value);
-          applyTheme(themeSetting.value);
+        const storedTheme = localStorage.getItem('app-theme') || 'basique';
+        setTheme(storedTheme);
+        applyTheme(storedTheme);
+
+        // Load Compact Mode
+        const isCompact = localStorage.getItem('app-compact') === 'true';
+        setCompactMode(isCompact);
+        if (isCompact) {
+          document.documentElement.classList.add('compact-mode');
         }
 
         // Load Appearance (Local Storage mostly for UI prefs)
@@ -38,7 +47,19 @@ export const AppProvider = ({ children }) => {
         applyCustomAppearance(storedAppearance);
 
         // Charger l'utilisateur local par défaut
-        const localUser = await db.users.toCollection().first();
+        let localUser = await db.users.toCollection().first();
+
+        // Migration Patch for terminology
+        if (localUser && (localUser.username === 'Explorateur' || localUser.activeTitle === 'Explorateur')) {
+          const updatedUser = {
+            ...localUser,
+            username: localUser.username === 'Explorateur' ? 'Initié' : localUser.username,
+            activeTitle: localUser.activeTitle === 'Explorateur' ? 'Initié' : localUser.activeTitle
+          };
+          await db.users.update(localUser.id, updatedUser);
+          localUser = updatedUser;
+        }
+
         setUser(localUser);
       } catch (error) {
         console.error('Error initializing app:', error);
@@ -61,35 +82,67 @@ export const AppProvider = ({ children }) => {
     await db.settings.put({ id: 'theme', key: 'theme', value: newThemeId });
   };
 
+  const toggleCompactMode = async () => {
+    const newValue = !compactMode;
+    setCompactMode(newValue);
+    if (newValue) {
+      document.documentElement.classList.add('compact-mode');
+    } else {
+      document.documentElement.classList.remove('compact-mode');
+    }
+    localStorage.setItem('app-compact', newValue.toString());
+  };
+
+  const calculateMasteryMultiplier = (level) => {
+    // +2% XP for every 5 levels
+    const bonuses = Math.floor(level / 5);
+    return 1 + (bonuses * 0.02);
+  };
+
   const addXP = async (amount, source = 'general') => {
     if (!user) return;
 
-    // ✅ Validation XP
     if (typeof amount !== 'number' || isNaN(amount) || amount < 0) {
       console.error('Invalid XP amount:', amount);
       return;
     }
 
-    const newXP = user.xp + amount;
-    let newLevel = user.level;
-    let xpToNextLevel = user.xpToNextLevel;
+    const multiplier = calculateMasteryMultiplier(user.level || 1);
+    const finalAmount = Math.round(amount * multiplier);
 
-    if (newXP >= xpToNextLevel) {
+    let newXP = user.xp + finalAmount;
+    let newLevel = user.level || 1;
+    let xpToNextLevel = user.xpToNextLevel || 100;
+    let leveledUp = false;
+
+    // Non-linear leveling formula: 100 * level^1.5
+    while (newXP >= xpToNextLevel) {
+      leveledUp = true;
+      newXP -= xpToNextLevel;
       newLevel += 1;
-      xpToNextLevel = Math.floor(xpToNextLevel * 1.5);
+      xpToNextLevel = Math.floor(100 * Math.pow(newLevel, 1.5));
     }
 
     const updatedUser = {
       ...user,
       xp: newXP,
+      totalXP: (user.totalXP || 0) + finalAmount,
       level: newLevel,
       xpToNextLevel
     };
 
+    if (leveledUp) {
+      setLevelUpData({
+        oldLevel: user.level,
+        newLevel: newLevel,
+        rewards: [] // Could be populated based on level
+      });
+    }
+
     await db.users.update(user.id, updatedUser);
     setUser(updatedUser);
 
-    // Analytics - ✅ Normalisation de la date
+    // Analytics
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -100,7 +153,7 @@ export const AppProvider = ({ children }) => {
 
     if (existingAnalytics) {
       await db.analytics.update(existingAnalytics.id, {
-        xpEarned: existingAnalytics.xpEarned + amount
+        xpEarned: (existingAnalytics.xpEarned || 0) + amount
       });
     } else {
       await db.analytics.add({
@@ -111,6 +164,8 @@ export const AppProvider = ({ children }) => {
         questsCompleted: 0
       });
     }
+
+    return { leveledUp, newLevel };
   };
 
   const updateAppearance = (newSettings) => {
@@ -152,7 +207,15 @@ export const AppProvider = ({ children }) => {
     addXP,
     loading,
     zenMode,
-    setZenMode
+    setZenMode,
+    compactMode,
+    toggleCompactMode,
+    levelUpData,
+    setLevelUpData,
+    activeTitle,
+    setActiveTitle,
+    activeEffect,
+    setActiveEffect
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

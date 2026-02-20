@@ -1,0 +1,135 @@
+INITIUM — DIRECTION ARTISTIQUE OFFICIELLE
+1. Positionnement visuel
+
+Initium doit ressembler à :
+
+Un OS expérimental
+
+Un système militaire d’entraînement
+
+Un laboratoire d’optimisation humaine
+
+Pas à Notion.
+Pas à une app de to-do.
+
+2. Architecture visuelle globale
+A. Fond principal
+
+Texture métal sombre micro-grainé.
+Très léger reflet horizontal.
+
+Couleur dominante :
+
+Graphite profond (#1F2328)
+
+Dégradé très subtil vers acier froid (#2A2F36)
+
+Aucune couleur vive en fond.
+
+B. Lumière
+
+La lumière vient des éléments interactifs.
+
+Couleur lumière principale :
+
+Bleu arctique pâle (#B8D9EA)
+
+Couleur secondaire rare :
+
+Vert mousse désaturé (#5F6E63)
+
+Le vert ne sert qu’à indiquer progression stable.
+Le bleu = système actif.
+
+3. Typographie officielle d’Initium
+
+Tu veux original ? Très bien.
+
+TITRES SYSTÈME (Rangs, Quêtes principales)
+
+Druk
+ou
+Monument Extended
+
+Utilisation :
+
+FULL CAPS
+
+Ultra bold
+
+Espacement serré
+
+Taille dominante
+
+Ça impose l’autorité.
+
+INTERFACE / NAVIGATION
+
+Neue Machina
+
+Technique. Mécanique. Froid.
+
+DONNÉES / STATS / LOGS
+
+Suisse Int'l Mono
+
+Alignement parfait.
+Aspect terminal moderne.
+
+4. Formes — Organique maîtrisé
+
+Initium n’est pas carré.
+Mais il n’est pas mou.
+
+Règles :
+
+Sections principales : structure rectangulaire stricte
+
+Cartes internes : coins asymétriques subtils
+
+Lignes légèrement courbées dans les graphes
+
+Formes “coupées” comme si sculptées dans le métal
+
+L’organique est dans le détail.
+La structure reste militaire.
+
+5. Transparence / Verre
+
+Effet glace :
+
+Blur 12–18px max
+
+Opacité 80%
+
+Bordure 1px blanc 15% opacity
+
+Reflet supérieur très léger
+
+Les cartes doivent sembler “posées sur une plaque d’acier”.
+
+6. Hiérarchie visuelle
+
+Ordre de lecture :
+
+RANG (énorme, brutal)
+
+État système (mono)
+
+Quêtes actives (cartes translucides)
+
+Données précises (mono aligné)
+
+Toujours prioriser la progression.
+Jamais la décoration.
+
+7. Interaction
+
+Hover → légère illumination bleu glacé
+
+Click → micro-impulsion lumineuse
+
+Échec quête → rouge très sombre désaturé (jamais rouge vif)
+
+L’émotion doit être contrôlée.
+Pas dramatique. Juste clinique.

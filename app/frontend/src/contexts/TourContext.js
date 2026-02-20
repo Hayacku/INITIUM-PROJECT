@@ -11,144 +11,32 @@ export const TourProvider = ({ children }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // SCÉNARIO COMPLET
+    // SCÉNARIO SIMPLIFIÉ (3 étapes)
     const steps = [
-        // --- DASHBOARD ---
+        {
+            targetId: 'create-quest-btn',
+            title: '1. Créez votre première Quête',
+            content: 'Commencez l\'aventure en définissant un objectif concret. Cliquez ici pour lancer le créateur de quête.',
+            path: '/quests'
+        },
+        {
+            targetId: 'habit-1', // Assuming habit-1 exists or we point to generic habit area
+            // Better to point to "Add Habit" but we don't have that ID easily accessible in dashboard yet without "Add Habit" button there or nav
+            // Plan said "Add Habit". Let's point to Habits nav or a mock button if needed.
+            // Let's rely on navigating to Habits page and pointing to a create button there?
+            // "3 étapes: créer quête → ajouter habitude → explorer dashboard"
+
+            // Let's point to Nav Habits first
+            targetId: 'nav-habits',
+            title: '2. Ancrez vos Habitudes',
+            content: 'La régularité est la clé. Allez dans "Habitudes" pour définir vos rituels quotidiens.',
+            path: '/' // Nav is visible on root
+        },
         {
             targetId: 'dashboard-title',
-            title: 'Bienvenue sur INITIUM 🚀',
-            content: 'Voici votre tableau de bord. Il centralise votre progression globale : niveau, XP et état d\'esprit du moment.',
+            title: '3. Votre Tableau de Bord',
+            content: 'Tout se réunit ici : vos stats, vos quêtes en cours et votre progression du jour. Prêt à commencer ?',
             path: '/'
-        },
-        {
-            targetId: 'stats-grid',
-            title: 'Vos Signaux Vitaux',
-            content: 'Gardez un œil sur vos métriques clés : Quêtes en cours, Série d\'habitudes (Streak), et XP du jour. C\'est votre pouls de productivité.',
-            path: '/'
-        },
-        {
-            targetId: 'active-projects-widget', // ID à ajouter ou utiliser existant
-            title: 'Projets Actifs',
-            content: 'Accédez rapidement aux projets sur lesquels vous travaillez. La barre de progression vous indique où vous en êtes.',
-            path: '/'
-        },
-
-        // --- PROJETS ---
-        {
-            targetId: 'nav-projects',
-            title: 'Navigation : Projets',
-            content: 'Allons voir vos Projets. C\'est la structure de base de votre organisation.',
-            path: '/'
-        },
-        {
-            targetId: 'projects-title', // ID à ajouter
-            title: 'Vue Projets',
-            content: 'Ici, vous définissez vos grandes ambitions (ex: "Apprendre le Japonais", "Lancer mon Business"). Chaque projet regroupe quêtes, notes et tâches.',
-            path: '/projects'
-        },
-        {
-            targetId: 'new-project-btn', // ID à ajouter
-            title: 'Créer un Projet',
-            content: 'Commencez par créer un projet pour structurer vos idées. Vous pourrez ensuite y lier tout le reste.',
-            path: '/projects'
-        },
-
-        // --- QUÊTES ---
-        {
-            targetId: 'nav-quests',
-            title: 'Quêtes & Tâches',
-            content: 'Passons à l\'action avec les Quêtes.',
-            path: '/projects'
-        },
-        {
-            targetId: 'quests-title', // ID à ajouter
-            title: 'Tableau des Quêtes',
-            content: 'Une quête est une mission concrète avec un début, une fin, et de l\'XP à la clé.',
-            path: '/quests'
-        },
-        {
-            targetId: 'create-quest-btn', // ID à ajouter
-            title: 'Nouvelle Quête',
-            content: 'Créez une quête, définissez une date limite et une priorité. Découpez-la en "Étapes" pour ne rien oublier.',
-            path: '/quests'
-        },
-
-        // --- HABITUDES ---
-        {
-            targetId: 'nav-habits',
-            title: 'Habitudes',
-            content: 'La régularité est la clé du succès. Allons voir vos habitudes.',
-            path: '/quests'
-        },
-        {
-            targetId: 'habits-title', // ID à ajouter
-            title: 'Suivi d\'Habitudes',
-            content: 'Définissez des rituels (Quotidien, Hebdo). Chaque réalisation maintient votre "Streak" (Série) et booste votre XP.',
-            path: '/habits'
-        },
-
-        // --- TRAINING ---
-        {
-            targetId: 'nav-training',
-            title: 'Entraînement 2.0',
-            content: 'Un esprit sain dans un corps sain.',
-            path: '/habits'
-        },
-        {
-            targetId: 'training-title', // ID à ajouter
-            title: 'Votre Salle de Sport',
-            content: 'Planifiez vos séances ou enregistrez celles terminées. Vous pouvez lier des Notes (ex: performances) à chaque séance.',
-            path: '/training'
-        },
-
-        // --- NOTES ---
-        {
-            targetId: 'nav-notes',
-            title: 'Notes & Connaissances',
-            content: 'Capturez vos idées et vos apprentissages.',
-            path: '/training'
-        },
-        {
-            targetId: 'notes-title', // ID à ajouter
-            title: 'Base de Connaissances',
-            content: 'Rédigez en Markdown. Le point fort : vous pouvez lier une note à un Projet, une Quête ou un Entraînement.',
-            path: '/notes'
-        },
-
-        // --- AGENDA ---
-        {
-            targetId: 'nav-agenda',
-            title: 'Agenda Unifié',
-            content: 'Une vue d\'ensemble de votre temps.',
-            path: '/notes'
-        },
-        {
-            targetId: 'agenda-title', // ID à ajouter
-            title: 'Tout en un',
-            content: 'Cet agenda fusionne vos Événements, vos Deadlines de Quêtes et vos Séances de sport planifiées.',
-            path: '/agenda'
-        },
-
-        // --- POMODORO ---
-        {
-            targetId: 'nav-pomodoro',
-            title: 'Focus Station',
-            content: 'Besoin de concentration maximale ?',
-            path: '/agenda'
-        },
-        {
-            targetId: 'pomodoro-timer', // ID à ajouter (Card)
-            title: 'Pomodoro & Spotify',
-            content: 'Lancez un timer, connectez votre compte Spotify, et travaillez en musique sans distractions.',
-            path: '/pomodoro'
-        },
-
-        // --- FIN ---
-        {
-            targetId: 'nav-help',
-            title: 'Centre d\'Aide',
-            content: 'Retrouvez ce guide, les mentions légales ou contactez-nous via le menu Aide. À vous de jouer ! 🌟',
-            path: '/help'
         }
     ];
 

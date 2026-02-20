@@ -1,0 +1,238 @@
+# INITIUM — Liste de tâches actionables
+
+
+## 1. TÂCHES UX (Expérience utilisateur)
+
+### Critique (Impact immédiat)
+
+- [/] [UX] Créer un tour guidé interactif au premier lancement (3 étapes: créer quête → ajouter habitude → explorer dashboard)
+- [/] [UX] Ajouter un badge "Exemple" visible sur toutes les données pré-remplies
+- [/] [UX] Créer un bouton "Supprimer tous les exemples" dans Settings
+- [/] [UX] Diviser le formulaire de création de quête en 2 étapes (Minimal: titre + catégorie / Avancé: reste)
+- [/] [UX] Ajouter des valeurs par défaut intelligentes au formulaire de quête (XP calculé automatiquement selon catégorie)
+- [/] [UX] Ajouter des tooltips explicatifs sur les champs "XP" et "Effort"
+- [/] [UX] Afficher une icône de statut de synchronisation dans la sidebar (✓ Synchronisé / ↻ En cours / ⚠️ Erreur)
+- [/] [UX] Afficher un toast de confirmation après chaque synchronisation cloud réussie
+- [/] [UX] Créer une section "Statut de synchronisation" dans Settings (dernière sync, taille des données, erreurs)
+- [/] [UX] Remplacer le message d'erreur générique "Il reste X étapes" par une liste cliquable des étapes incomplètes
+- [/] [UX] Ajouter un message de confirmation avant de terminer une quête avec étapes incomplètes
+
+### Important
+
+- [/] [UX] Réduire le nombre d'items visibles dans la sidebar de 12 à 8 maximum
+- [/] [UX] Déplacer Pomodoro et Help dans un menu "Plus" (⋯)
+- [/] [UX] Ajouter des breadcrumbs de navigation (Projet > Quête > Étape) avec liens cliquables
+- [/] [UX] Créer une recherche globale (Cmd+K) unifiée (quêtes + notes + projets + habitudes)
+- [/] [UX] Ajouter des raccourcis clavier pour actions fréquentes (Cmd+N nouvelle quête, Cmd+H nouvelle habitude)
+- [/] [UX] Implémenter un système Undo/Redo (Cmd+Z / Cmd+Shift+Z) pour annuler suppressions
+- [/] [UX] Créer un historique des 10 dernières actions dans Settings
+- [/] [UX] Ajouter des skeleton loaders au lieu de spinners pour le chargement
+- [/] [UX] Afficher un indicateur clair de mode offline (bannière + icône)
+- [/] [UX] Créer une queue de synchronisation visible quand offline
+- [/] [UX] Implémenter une résolution de conflits pour éditions simultanées offline/online
+
+### Optimisations
+
+- [/] [UX] Permettre le drag & drop des widgets du Dashboard
+- [/] [UX] Ajouter une option "Masquer/Afficher" pour chaque widget du Dashboard
+- [/] [UX] Permettre le redimensionnement des widgets (petit/moyen/grand)
+- [/] [UX] Ajouter une option "Marquer comme obsolète" pour les étapes de quête (au lieu de forcer la complétion)
+- [/] [UX] Permettre la complétion multiple d'une habitude par jour (ex: 8 verres d'eau)
+- [/] [UX] Afficher l'objectif hebdomadaire des habitudes (champ `targetPerWeek` existant mais non utilisé)
+- [/] [UX] Créer une vue liste alternative pour les Projets (en plus du Kanban)
+- [/] [UX] Créer une vue calendrier alternative pour les Projets
+- [/] [UX] Ajouter une option "Vue compacte" dans Settings (réduire padding/spacing)
+
+---
+
+## 2. TÂCHES DA (Direction Artistique)
+
+### Critique
+
+- [/] [DA] Augmenter le contraste des textes `text-muted-foreground` pour atteindre WCAG AA (ratio 4.5:1 minimum)
+- [/] [DA] Créer et implémenter un mode clair (light theme) complet
+- [/] [DA] Ajouter un toggle Dark/Light dans Settings
+- [/] [DA] Augmenter la taille des H2 de `text-base` à `text-2xl` minimum
+- [/] [DA] Réduire la variété des poids de police (limiter à 3: normal/medium/bold au lieu de 6)
+
+### Important
+
+- [ ] [DA] Créer une bibliothèque d'illustrations custom pour remplacer les icônes génériques
+- [ ] [DA] Designer des badges animés avec effets de rareté (commun/rare/épique/légendaire)
+- [ ] [DA] Créer une animation de level-up (modal avec confettis + son optionnel)
+- [ ] [DA] Ajouter des confettis lors de la complétion de quête (react-confetti)
+- [ ] [DA] Designer des avatars personnalisables déblocables par XP
+- [ ] [DA] Créer des effets de particules déblocables pour le profil utilisateur
+- [ ] [DA] Designer une signature visuelle unique (pattern/motif récurrent dans l'app)
+- [ ] [DA] Créer des thèmes déblocables avec XP (au-delà des 7 actuels)
+
+### Optimisations
+
+- [ ] [DA] Ajouter une police de fallback locale (en cas d'échec Google Fonts)
+- [ ] [DA] Harmoniser les border-radius (actuellement mélange de rounded-lg/xl/2xl)
+- [ ] [DA] Créer une animation de transition entre pages (fade + slide)
+- [ ] [DA] Ajouter des micro-animations sur les boutons (scale on hover)
+- [ ] [DA] Designer un état de chargement cohérent pour tous les modules
+
+---
+
+## 3. TÂCHES FEATURES (Fonctionnalités)
+
+### Critique
+
+- [ ] [FEATURE] Implémenter un calcul automatique de XP basé sur catégorie + effort + durée estimée
+- [ ] [FEATURE] Créer un système de notifications push PWA (Service Worker)
+- [ ] [FEATURE] Ajouter des rappels configurables pour les habitudes (ex: "Méditer à 8h")
+- [ ] [FEATURE] Créer des alertes pour deadlines de quêtes (J-3, J-1, Jour J)
+- [ ] [FEATURE] Remplacer les insights Analytics statiques par des calculs dynamiques personnalisés
+- [ ] [FEATURE] Ajouter un insight "Votre meilleur jour est [X] avec [Y XP] en moyenne"
+- [ ] [FEATURE] Ajouter un insight "Vous êtes X% plus productif le [matin/soir]"
+- [ ] [FEATURE] Ajouter un insight "Vos quêtes [catégorie] ont un taux de complétion de X%"
+
+### Important
+
+- [ ] [FEATURE] Créer une bibliothèque de templates de quêtes ("Apprendre une langue", "Lancer un side-project", "Routine matinale")
+- [ ] [FEATURE] Permettre de sauvegarder ses propres templates de quêtes
+- [ ] [FEATURE] Créer un système de récurrence pour les quêtes (quotidien/hebdomadaire/mensuel)
+- [ ] [FEATURE] Créer un système de récurrence pour les événements avec exceptions
+- [ ] [FEATURE] Implémenter une heatmap GitHub-style pour les habitudes (30 derniers jours)
+- [ ] [FEATURE] Afficher un graphique de cohérence hebdomadaire pour chaque habitude
+- [ ] [FEATURE] Créer un streak calendar visuel (jours consécutifs en vert)
+- [ ] [FEATURE] Implémenter la détection automatique de backlinks `[[liens]]` dans les notes
+- [ ] [FEATURE] Créer un graphe de connaissances interactif (react-force-graph)
+- [ ] [FEATURE] Ajouter des suggestions de liens automatiques ("Cette note mentionne 'React', lier à la quête 'Apprendre React' ?")
+- [ ] [FEATURE] Créer un système de déblocables (thèmes, avatars, effets) avec XP
+- [ ] [FEATURE] Implémenter une progression visible vers le prochain badge (ex: "7/30 jours de streak")
+
+### Fonctionnalités manquantes
+
+- [ ] [FEATURE] Créer un export PDF des rapports Analytics
+- [ ] [FEATURE] Créer un export Markdown de toutes les notes (backup complet)
+- [ ] [FEATURE] Implémenter un import depuis Notion (migration)
+- [ ] [FEATURE] Implémenter un import depuis Todoist (migration)
+- [ ] [FEATURE] Implémenter un import depuis Trello (migration)
+- [ ] [FEATURE] Créer une synchronisation bidirectionnelle avec Google Calendar
+- [ ] [FEATURE] Ajouter des sous-tâches dans les Projets (hiérarchie à 3 niveaux)
+- [ ] [FEATURE] Créer un système de dépendances entre tâches ("Tâche B après Tâche A")
+- [ ] [FEATURE] Ajouter des dates de début/fin de projet
+- [ ] [FEATURE] Créer des colonnes Kanban personnalisables (au-delà de À faire/En cours/Terminé)
+- [ ] [FEATURE] Implémenter le drag & drop pour déplacer les événements dans l'Agenda
+- [ ] [FEATURE] Créer une vue semaine et une vue jour pour l'Agenda
+- [ ] [FEATURE] Ajouter le time-blocking dans l'Agenda (planifier blocs de travail)
+- [ ] [FEATURE] Créer des templates d'entraînement réutilisables
+- [ ] [FEATURE] Permettre la planification d'entraînements futurs (utiliser `scheduleDate`)
+- [ ] [FEATURE] Créer des graphiques de progression pour le Training (charge/volume)
+- [ ] [FEATURE] Implémenter un éditeur WYSIWYG pour les notes (alternative au Markdown)
+- [ ] [FEATURE] Ajouter le support des tableaux dans l'éditeur de notes
+- [ ] [FEATURE] Ajouter le support des images inline dans les notes
+- [ ] [FEATURE] Ajouter le syntax highlighting pour les blocs de code dans les notes
+- [ ] [FEATURE] Créer un système de versioning pour les notes (historique)
+- [ ] [FEATURE] Créer des templates de notes réutilisables
+
+### Collaboration (V2)
+
+- [ ] [FEATURE] Implémenter le partage de projets entre utilisateurs
+- [ ] [FEATURE] Créer un système d'assignation de tâches
+- [ ] [FEATURE] Ajouter des commentaires/discussions sur les quêtes
+- [ ] [FEATURE] Créer des permissions (propriétaire/éditeur/lecteur)
+
+---
+
+## 4. TÂCHES EXPERIENCE (Expérience globale)
+
+### Engagement
+
+- [ ] [EXPERIENCE] Créer une citation du jour dynamique (rotation quotidienne, API de citations)
+- [ ] [EXPERIENCE] Ajouter un son de victoire optionnel lors de complétion de quête (désactivable dans Settings)
+- [ ] [EXPERIENCE] Créer une animation de célébration pour les nouveaux badges
+- [ ] [EXPERIENCE] Implémenter un système de streaks multi-habitudes (ex: "7 jours avec toutes les habitudes complétées")
+- [ ] [EXPERIENCE] Créer des défis hebdomadaires automatiques ("Gagnez 500 XP cette semaine")
+- [ ] [EXPERIENCE] Ajouter des récompenses cosmétiques pour milestones (niveau 10, 25, 50, 100)
+
+### Rétention
+
+- [ ] [EXPERIENCE] Créer un email récapitulatif hebdomadaire (XP gagné, quêtes complétées, insights)
+- [ ] [EXPERIENCE] Implémenter des notifications de réengagement ("Vous n'avez pas complété d'habitude depuis 3 jours")
+- [ ] [EXPERIENCE] Créer un système de "quick win" pour nouveaux utilisateurs ("Première quête complétée en 2 minutes")
+- [ ] [EXPERIENCE] Ajouter une section "Accomplissements du mois" dans Analytics
+
+### Fluidité
+
+- [ ] [EXPERIENCE] Créer des liens rapides entre modules (ex: depuis une quête, cliquer pour voir le projet parent)
+- [ ] [EXPERIENCE] Implémenter une navigation au clavier complète (Tab, Enter, Esc)
+- [ ] [EXPERIENCE] Créer des actions rapides contextuelles (clic droit sur quête → menu actions)
+- [ ] [EXPERIENCE] Ajouter un bouton "Créer une quête liée" depuis une note
+- [ ] [EXPERIENCE] Ajouter un bouton "Créer une note liée" depuis une quête
+
+---
+
+## 5. TÂCHES VISION (Stratégie produit)
+
+### Positionnement
+
+- [ ] [VISION] Rédiger une proposition de valeur claire en une phrase (remplacer "second cerveau numérique")
+- [ ] [VISION] Définir un persona principal précis (âge, profession, besoins, frustrations)
+- [ ] [VISION] Créer une page "Pourquoi INITIUM ?" expliquant la différence vs Notion/Habitica/Todoist
+- [ ] [VISION] Documenter la killer feature unique (actuellement absente)
+
+### Cohérence conceptuelle
+
+- [ ] [VISION] Décider si l'app est "Gaming" ou "Professionnelle" (actuellement entre les deux)
+- [ ] [VISION] Créer une option Settings "Terminologie: Classique (Tâches) / Gaming (Quêtes)"
+- [ ] [VISION] Harmoniser le vocabulaire dans toute l'app (actuellement mélange FR/EN, gaming/pro)
+- [ ] [VISION] Créer un guide de style éditorial (tone of voice, terminologie)
+
+### Différenciation
+
+- [ ] [VISION] Identifier et développer UNE killer feature unique (ex: "IA de priorisation automatique")
+- [ ] [VISION] Créer une roadmap publique pour transparence et engagement communauté
+- [ ] [VISION] Définir un modèle de monétisation clair (freemium: gratuit jusqu'à 50 quêtes, payant pour collaboration)
+
+---
+
+## 6. TÂCHES CLEAN (Nettoyage & simplification)
+
+### Suppressions nécessaires
+
+- [ ] [CLEAN] Supprimer le module Training (transformer en catégorie d'Habitudes "Sport")
+- [ ] [CLEAN] Supprimer le champ `effort` des quêtes (non utilisé dans l'UI)
+- [ ] [CLEAN] Supprimer la possibilité de lier une habitude à un projet ET une quête (choisir un seul lien)
+- [ ] [CLEAN] Supprimer les données d'exemple après onboarding (automatiquement ou manuellement)
+- [ ] [CLEAN] Supprimer les thèmes non finalisés (garder 3-4 thèmes de qualité au lieu de 7 moyens)
+
+### Simplifications forcées
+
+- [ ] [CLEAN] Fusionner Quêtes + Projets en un seul module "Objectifs" avec 2 vues (Liste/Kanban)
+- [ ] [CLEAN] Réduire le formulaire de création de quête de 8 champs à 3 champs obligatoires (titre/catégorie/date)
+- [ ] [CLEAN] Simplifier la hiérarchie de navigation (3 groupes max au lieu de 4)
+- [ ] [CLEAN] Réduire les catégories de quêtes de 7 à 5 maximum
+- [ ] [CLEAN] Limiter les types d'événements Agenda à 3 (au lieu de multiples types)
+
+### Refactorisation conceptuelle
+
+- [ ] [CLEAN] Renommer "Quêtes" en "Tâches" par défaut (option Gaming dans Settings)
+- [ ] [CLEAN] Renommer "Habitudes" en "Routines" (plus universel)
+- [ ] [CLEAN] Clarifier la différence entre Projet et Quête dans la documentation
+- [ ] [CLEAN] Créer un guide "Quand utiliser Quête vs Projet vs Habitude"
+- [ ] [CLEAN] Supprimer la redondance entre `tasks` et `quests` dans la base de données (unifier)
+
+### Optimisations techniques
+
+- [ ] [CLEAN] Implémenter le code-splitting pour réduire la taille du bundle initial
+- [ ] [CLEAN] Lazy-load les images et composants lourds
+- [ ] [CLEAN] Optimiser les requêtes IndexedDB (batch updates au lieu de updates individuels)
+- [ ] [CLEAN] Supprimer les dépendances non utilisées (audit package.json)
+- [ ] [CLEAN] Migrer de CRA vers Vite pour build plus rapide
+
+---
+
+## STATISTIQUES
+
+**Total tâches**: 150+  
+**Répartition**:
+- UX: 30 tâches
+- DA: 17 tâches
+- FEATURES: 55 tâches
+- EXPERIENCE: 13 tâches
+- VISION: 10 tâches
+- CLEAN: 15 tâches

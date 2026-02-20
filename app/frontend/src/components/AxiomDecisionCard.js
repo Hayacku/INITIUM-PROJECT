@@ -29,9 +29,9 @@ const AxiomDecisionCard = () => {
     };
 
     return (
-        <Card className="border border-border/50 bg-card/50 shadow-sm overflow-hidden">
+        <Card className="glass-card shadow-sm overflow-hidden">
             <CardHeader className="pb-3 border-b border-border/40 bg-muted/20">
-                <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
                     <Brain className="w-4 h-4 text-violet-500" />
                     Axiom Engine
                 </CardTitle>

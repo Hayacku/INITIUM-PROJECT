@@ -204,6 +204,134 @@ export const THEMES = {
       info: "180 100% 50%",
       error: "0 100% 50%"
     }
+  },
+
+  basique: {
+    id: 'basique',
+    label: "Basique (DA)",
+    description: "L'identité officielle d'INITIUM - Experimental OS",
+    preview: "bg-[#1F2328]",
+    hasNoise: true,
+    hasAsymm: true,
+    colors: {
+      background: "215 14% 14%", // #1F2328
+      foreground: "200 60% 95%",
+      card: "215 14% 16%",
+      'card-foreground': "200 60% 95%",
+      primary: "201 56% 82%", // #B8D9EA
+      'primary-foreground': "215 14% 14%",
+      secondary: "135 7% 41%", // #5F6E63
+      'secondary-foreground': "200 60% 95%",
+      accent: "201 56% 70%",
+      'accent-foreground': "215 14% 14%",
+      muted: "215 10% 25%",
+      'muted-foreground': "215 10% 70%",
+      destructive: "0 40% 40%",
+      'destructive-foreground': "200 60% 95%",
+      border: "215 10% 20% / 0.15",
+      input: "215 10% 18%",
+      ring: "201 56% 82%",
+      success: "142 70% 50%",
+      warning: "45 90% 55%",
+      info: "190 90% 55%",
+      error: "0 40% 40%"
+    }
+  },
+
+  terra: {
+    id: 'terra',
+    label: "Terra",
+    description: "Tons terreux et organiques",
+    preview: "bg-[#3d2817]",
+    hasNoise: false,
+    hasAsymm: false,
+    colors: {
+      background: "20 30% 8%",
+      foreground: "30 40% 98%",
+      card: "20 30% 12%",
+      'card-foreground': "30 40% 98%",
+      primary: "25 90% 60%", // Terracotta
+      'primary-foreground': "30 40% 98%",
+      secondary: "45 90% 60%", // Clay
+      'secondary-foreground': "20 30% 8%",
+      accent: "35 80% 55%",
+      'accent-foreground': "30 40% 98%",
+      muted: "20 30% 16%",
+      'muted-foreground': "30 20% 65%",
+      destructive: "0 85% 60%",
+      'destructive-foreground': "30 40% 98%",
+      border: "20 30% 16%",
+      input: "20 30% 16%",
+      ring: "25 90% 60%",
+      success: "142 71% 45%",
+      warning: "45 90% 60%",
+      info: "190 90% 50%",
+      error: "0 85% 60%"
+    }
+  },
+
+  light: {
+    id: 'light',
+    label: "Claire",
+    description: "Interface lumineuse et propre",
+    preview: "bg-white",
+    hasNoise: false,
+    hasAsymm: false,
+    colors: {
+      background: "0 0% 100%",
+      foreground: "220 20% 10%",
+      card: "0 0% 98%",
+      'card-foreground': "220 20% 10%",
+      primary: "215 25% 27%",
+      'primary-foreground': "0 0% 100%",
+      secondary: "215 15% 50%",
+      'secondary-foreground': "0 0% 100%",
+      accent: "215 25% 40%",
+      'accent-foreground': "0 0% 100%",
+      muted: "210 20% 95%",
+      'muted-foreground': "215 15% 40%",
+      destructive: "0 85% 60%",
+      'destructive-foreground': "0 0% 100%",
+      border: "210 20% 90%",
+      input: "210 20% 90%",
+      ring: "215 25% 27%",
+      success: "142 71% 45%",
+      warning: "38 92% 50%",
+      info: "188 94% 42%",
+      error: "0 85% 60%"
+    }
+  },
+
+  dark: {
+    id: 'dark',
+    label: "Sombre",
+    description: "Vision nocturne optimisée",
+    preview: "bg-[#0b0b14]",
+    hasNoise: true,
+    hasAsymm: false,
+    colors: {
+      background: "230 15% 4%",
+      foreground: "210 20% 98%",
+      card: "230 15% 6%",
+      'card-foreground': "210 20% 98%",
+      primary: "260 100% 65%",
+      'primary-foreground': "210 20% 98%",
+      secondary: "190 90% 50%",
+      'secondary-foreground': "230 15% 4%",
+      accent: "280 80% 60%",
+      'accent-foreground': "210 20% 98%",
+      muted: "230 15% 12%",
+      'muted-foreground': "215 20% 75%",
+      destructive: "0 85% 60%",
+      'destructive-foreground': "210 20% 98%",
+      border: "230 15% 12%",
+      input: "230 15% 12%",
+      ring: "260 100% 65%",
+      success: "142 70% 50%",
+      warning: "45 90% 55%",
+      info: "190 90% 55%",
+      error: "0 85% 60%"
+    }
   }
 };
 
@@ -212,22 +340,34 @@ export const THEMES = {
  * @param {string} themeId - Theme identifier
  */
 export const applyTheme = (themeId) => {
-  const theme = THEMES[themeId] || THEMES['cosmic'];
+  const theme = THEMES[themeId] || THEMES['basique'];
   const root = document.documentElement;
 
-  // Apply all color variables
-  Object.entries(theme.colors).forEach(([key, value]) => {
-    root.style.setProperty(`--${key}`, value);
-  });
-
   // Handle light/dark mode class
-  const lightThemes = ['minimal'];
+  const lightThemes = ['light', 'minimal'];
   if (lightThemes.includes(themeId)) {
     root.classList.remove('dark');
     root.style.colorScheme = 'light';
   } else {
     root.classList.add('dark');
     root.style.colorScheme = 'dark';
+  }
+
+  // Set Theme Identifier for CSS conditional styles
+  root.setAttribute('data-theme', themeId);
+
+  // Apply Noise
+  if (theme.hasNoise) {
+    root.classList.add('with-noise');
+  } else {
+    root.classList.remove('with-noise');
+  }
+
+  // Apply Asymmetric Corners
+  if (theme.hasAsymm) {
+    root.classList.add('with-asymm');
+  } else {
+    root.classList.remove('with-asymm');
   }
 
   // Persist preference
@@ -239,7 +379,7 @@ export const applyTheme = (themeId) => {
  * @returns {string} Theme ID
  */
 export const getCurrentTheme = () => {
-  return localStorage.getItem('app-theme') || 'cosmic';
+  return localStorage.getItem('app-theme') || 'basique';
 };
 
 /**
@@ -268,11 +408,12 @@ export const applyCustomAppearance = (settings) => {
   }
 
   // 2. Apply Density
-  // We can toggle a class 'compact-mode'
   if (settings.density === 'compact') {
     root.classList.add('compact-mode');
+    localStorage.setItem('app-compact', 'true');
   } else {
     root.classList.remove('compact-mode');
+    localStorage.setItem('app-compact', 'false');
   }
 
   // 3. Apply Font

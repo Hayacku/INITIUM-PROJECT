@@ -1,300 +1,435 @@
-import React, { useState, useEffect } from 'react';
-import { useApp } from '../contexts/AppContext';
+import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../lib/db';
+import { useHistory } from '../contexts/HistoryContext';
+import { useApp } from '../contexts/AppContext';
+import XPPopup from '../components/gamification/XPPopup';
+import { AnimatePresence } from 'framer-motion';
 import {
-  TrendingUp, Plus, Flame, CheckCircle2, Trash2, Trophy,
-  Calendar as CalendarIcon, MoreVertical, Pencil, Link as LinkIcon,
-  Settings2, X
+    Activity,
+    Flame,
+    Trophy,
+    Plus,
+    Trash2,
+    CheckCircle2,
+    ChevronDown,
+    ChevronUp,
+    MoreVertical,
+    FolderKanban,
+    PlusCircle,
+    Calendar,
+    BarChart3
 } from 'lucide-react';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
-} from '../components/ui/dropdown-menu';
 import { Button } from '../components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Progress } from '../components/ui/progress';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '../components/ui/dialog';
+import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '../components/ui/select';
 import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useTour } from '../contexts/TourContext';
+import HabitsSkeleton from '../components/skeletons/HabitsSkeleton';
+import { format } from 'date-fns';
+import HabitHeatmap from '../components/habits/HabitHeatmap';
+import HabitConsistency from '../components/habits/HabitConsistency';
+import StreakCalendar from '../components/habits/StreakCalendar';
 
 const Habits = () => {
-  const { addXP } = useApp();
-  const [habits, setHabits] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [quests, setQuests] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [editData, setEditData] = useState(null);
+    const [habits, setHabits] = useState([]);
+    const [habitLogs, setHabitLogs] = useState({}); // Map habitId -> logs[]
+    const [isLoading, setIsLoading] = useState(true);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [editHabit, setEditHabit] = useState(null);
+    const [projects, setProjects] = useState([]);
+    const [expandedHabitId, setExpandedHabitId] = useState(null);
+    const [newStepTitle, setNewStepTitle] = useState('');
+    const [showXPPopup, setShowXPPopup] = useState(null); // amount
+    const { addXP } = useApp();
+    const { startTour } = useTour();
 
-  // Catégories harmonisées avec Icones
-  const CATEGORIES = [
-    { id: 'Apprentissage', label: 'Apprentissage', color: 'bg-purple-500 text-purple-100', icon: '🧠', borderColor: 'border-purple-500' },
-    { id: 'Santé', label: 'Santé', color: 'bg-green-500 text-green-100', icon: '🌿', borderColor: 'border-green-500' },
-    { id: 'Travail', label: 'Travail', color: 'bg-blue-500 text-blue-100', icon: '💼', borderColor: 'border-blue-500' },
-    { id: 'Créativité', label: 'Créativité', color: 'bg-pink-500 text-pink-100', icon: '🎨', borderColor: 'border-pink-500' },
-    { id: 'Vie sociale', label: 'Vie sociale', color: 'bg-yellow-500 text-yellow-100', icon: '🤝', borderColor: 'border-yellow-500' },
-    { id: 'Finance', label: 'Finance', color: 'bg-orange-500 text-orange-100', icon: '💰', borderColor: 'border-orange-500' },
-    { id: 'Personnel', label: 'Personnel', color: 'bg-slate-500 text-slate-100', icon: '👤', borderColor: 'border-slate-500' }
-  ];
-
-  const [formData, setFormData] = useState({
-    title: '',
-    category: 'Santé',
-    frequency: 'daily',
-    targetPerWeek: 7,
-    xpPerCompletion: 25,
-    projectId: 'none',
-    questId: 'none'
-  });
-
-  useEffect(() => {
-    loadHabits();
-    loadLinkData();
-  }, []);
-
-  const loadLinkData = async () => {
-    const p = await db.projects.toArray();
-    const q = await db.quests.where('status').notEqual('completed').toArray();
-    setProjects(p);
-    setQuests(q);
-  };
-
-  const loadHabits = async () => {
-    try {
-      const data = await db.habits.toArray();
-      setHabits(data);
-    } catch (error) {
-      console.error('Error loading habits:', error);
-    }
-  };
-
-  const handleCreate = async () => {
-    if (!formData.title.trim()) {
-      toast.error('Le titre est requis');
-      return;
-    }
-
-    try {
-      await db.habits.add({
-        id: `habit-${Date.now()}`,
-        ...formData,
-        projectId: formData.projectId === 'none' ? null : formData.projectId,
-        questId: formData.questId === 'none' ? null : formData.questId,
-        streak: 0,
-        bestStreak: 0,
-        completedDates: [],
-        createdAt: new Date()
-      });
-
-      toast.success('Habitude créée!');
-      setIsOpen(false);
-      resetForm();
-      loadHabits();
-    } catch (error) {
-      toast.error('Erreur');
-      console.error(error);
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      category: 'Santé',
-      frequency: 'daily',
-      targetPerWeek: 7,
-      xpPerCompletion: 25,
-      projectId: 'none',
-      questId: 'none'
+    const [formData, setFormData] = useState({
+        title: '',
+        category: 'health',
+        frequency: 'daily',
+        dailyGoal: 1,
+        projectId: null
     });
-  };
 
-  const handleComplete = async (habit) => {
-    try {
-      const today = new Date().toDateString();
-      const lastCompleted = habit.lastCompleted ? new Date(habit.lastCompleted) : null;
+    const { executeDelete, history } = useHistory();
 
-      if (lastCompleted && lastCompleted.toDateString() === today) {
-        toast.info('Déjà complété aujourd\'hui');
-        return;
-      }
+    useEffect(() => {
+        loadHabits();
+        loadProjects();
+    }, [history]);
 
-      let newStreak = habit.streak || 0;
-      if (lastCompleted) {
-        const daysDiff = differenceInDays(new Date(today), lastCompleted);
-        if (daysDiff === 1) newStreak += 1;
-        else if (daysDiff > 1) newStreak = 1;
-        else newStreak = 1;
-      } else {
-        newStreak = 1;
-      }
+    const loadProjects = async () => {
+        const data = await db.projects.toArray();
+        setProjects(data);
+    };
 
-      const bestStreak = Math.max(newStreak, habit.bestStreak || 0);
+    const loadHabits = async () => {
+        setIsLoading(true);
+        const data = await db.habits.toArray();
+        setHabits(data);
 
-      // OPTIMISTIC UPDATE
-      const previousHabits = [...habits];
-      setHabits(prev => prev.map(h => h.id === habit.id ? {
-        ...h,
-        streak: newStreak,
-        bestStreak,
-        lastCompleted: new Date()
-      } : h));
+        // Load logs for all habits
+        const logs = {};
+        for (const habit of data) {
+            const habitEntries = await db.habit_logs.where('habitId').equals(habit.id).toArray();
+            logs[habit.id] = habitEntries.map(e => e.date); // Just dates for visualization
+        }
+        setHabitLogs(logs);
 
-      await db.habits.update(habit.id, {
-        streak: newStreak,
-        bestStreak,
-        lastCompleted: new Date()
-      });
+        setIsLoading(false);
+    };
 
-      await addXP(habit.xpPerCompletion, 'habit');
-      toast.success(`+${habit.xpPerCompletion} XP! 🔥`);
+    const handleCreate = async () => {
+        if (!formData.title.trim()) {
+            toast.error('Le titre est requis');
+            return;
+        }
 
-    } catch (err) {
-      console.error("Critical error in handleComplete", err);
-      toast.error("Erreur...");
-      loadHabits(); // Reload to fix sync
-    }
-  };
+        try {
+            if (editHabit) {
+                await db.habits.update(editHabit.id, {
+                    ...formData,
+                    updatedAt: new Date()
+                });
+                toast.success('Habitude mise à jour !');
+            } else {
+                await db.habits.add({
+                    id: `habit-${Date.now()}`,
+                    ...formData,
+                    streak: 0,
+                    bestStreak: 0,
+                    completionsToday: 0,
+                    createdAt: new Date(),
+                    completionDate: null
+                });
+                toast.success('Habitude créée !');
+            }
+            setIsCreateOpen(false);
+            setEditHabit(null);
+            setFormData({
+                title: '',
+                category: 'health',
+                frequency: 'daily',
+                dailyGoal: 1,
+                projectId: null
+            });
+            loadHabits();
+        } catch (error) {
+            toast.error(editHabit ? 'Erreur lors de la mise à jour' : 'Erreur lors de la création');
+            console.error(error);
+        }
+    };
 
-  const handleDelete = async (id) => {
-    try {
-      await db.habits.delete(id);
-      toast.success('Habitude supprimée');
-      loadHabits();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    const handleEdit = (habit) => {
+        setEditHabit(habit);
+        setFormData({
+            title: habit.title,
+            category: habit.category || 'health',
+            frequency: habit.frequency || 'daily',
+            dailyGoal: habit.dailyGoal || 1,
+            projectId: habit.projectId || null
+        });
+        setIsCreateOpen(true);
+    };
 
-  return (
-    <div className="space-y-8 animate-fade-in mb-24 lg:mb-0" data-testid="habits-page">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-center sm:text-left">
-          <h1 className="text-3xl sm:text-4xl font-black mb-2 flex items-center justify-center sm:justify-start gap-3 tracking-tight">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-emerald-500">
-              Mes Bulles
-            </span>
-          </h1>
-          <p className="text-muted-foreground text-sm font-medium">Éclatez vos objectifs quotidiens.</p>
-        </div>
+    const handleDelete = async (habit) => {
+        await executeDelete('habits', habit.id, habit);
+    };
 
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button size="lg" className="rounded-full shadow-lg shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 transition-all hover:scale-105">
-              <Plus className="w-5 h-5 mr-2" />
-              Nouveau
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nouvelle Bulle</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <Input value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} placeholder="Titre (ex: Boire de l'eau)" />
-              <Select value={formData.category} onValueChange={v => setFormData({ ...formData, category: v })}>
-                <SelectTrigger><SelectValue placeholder="Catégorie" /></SelectTrigger>
-                <SelectContent>{CATEGORIES.map(c => <SelectItem key={c.id} value={c.id}>{c.icon} {c.label}</SelectItem>)}</SelectContent>
-              </Select>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground">Objectif/sem</label>
-                  <Input type="number" min="1" max="7" value={formData.targetPerWeek} onChange={e => setFormData({ ...formData, targetPerWeek: parseInt(e.target.value) })} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground">XP</label>
-                  <Input type="number" value={formData.xpPerCompletion} onChange={e => setFormData({ ...formData, xpPerCompletion: parseInt(e.target.value) })} />
-                </div>
-              </div>
-              <Button onClick={handleCreate} className="w-full">Créer</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+    const handleComplete = async (habit) => {
+        const today = new Date().toDateString();
+        const lastCompleted = habit.lastCompleted ? new Date(habit.lastCompleted).toDateString() : null;
 
-      {/* BUBBLE GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 pb-20">
-        <AnimatePresence>
-          {habits.map((habit) => {
-            const isCompletedToday = habit.lastCompleted && new Date(habit.lastCompleted).toDateString() === new Date().toDateString();
-            const cat = CATEGORIES.find(c => c.id === habit.category) || CATEGORIES[1];
+        // Reset if new day
+        let completionsToday = habit.completionsToday || 0;
+        if (lastCompleted !== today) {
+            completionsToday = 0;
+        }
 
-            return (
-              <motion.div
-                layout
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                key={habit.id}
-                onClick={() => !isCompletedToday && handleComplete(habit)}
-                className={`
-                        relative aspect-square rounded-[2.5rem] p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none transition-all
-                        ${isCompletedToday
-                    ? 'bg-white/5 border-2 border-dashed border-white/10 opacity-40 grayscale'
-                    : `${cat.color.split(' ')[0]} shadow-lg shadow-black/10 border-4 border-transparent hover:border-white/20`
-                  }
-                    `}
-              >
-                {/* Status Icon */}
-                <div className={`
-                        absolute top-4 right-4 p-1.5 rounded-full backdrop-blur-md transition-all
-                        ${isCompletedToday ? 'bg-green-500 text-white' : 'bg-black/10 text-white/50'}
-                     `}>
-                  {isCompletedToday
-                    ? <CheckCircle2 className="w-4 h-4" />
-                    : <div className="w-4 h-4 rounded-full border-2 border-current" />
-                  }
-                </div>
+        if (completionsToday >= habit.dailyGoal) {
+            toast.info('Objectif journalier déjà atteint !');
+            return;
+        }
 
-                {/* Main Icon/Content */}
-                <span className="text-5xl mb-4 filter drop-shadow-sm select-none transform transition-transform group-hover:scale-110">{cat.icon}</span>
+        const newCompletionsToday = completionsToday + 1;
+        const isGoalReached = newCompletionsToday >= habit.dailyGoal;
 
-                <h3 className={`font-bold text-sm leading-tight break-words max-w-full px-1 ${isCompletedToday ? 'text-muted-foreground line-through' : 'text-white'}`}>
-                  {habit.title}
-                </h3>
+        // Update streak only when daily goal is reached
+        const newStreak = isGoalReached ? (habit.streak || 0) + 1 : (habit.streak || 0);
+        const newBestStreak = Math.max(newStreak, habit.bestStreak || 0);
 
-                {/* Streak Badge */}
-                {habit.streak > 0 && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-black/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-white/90 shadow-sm border border-white/10">
-                    <Flame className="w-3 h-3 fill-orange-400 text-orange-400" />
-                    {habit.streak}
-                  </div>
+        await db.habits.update(habit.id, {
+            completionsToday: newCompletionsToday,
+            streak: newStreak,
+            bestStreak: newBestStreak,
+            lastCompleted: new Date(),
+            completionDate: new Date() // Keep for compatibility
+        });
+
+        // Log to habit_logs
+        await db.habit_logs.add({
+            habitId: habit.id,
+            date: format(new Date(), 'yyyy-MM-dd'),
+            count: 1
+        });
+
+        // Update XP via centralized context
+        const xpGain = 10;
+        addXP(xpGain, 'habit_completion');
+        setShowXPPopup(xpGain);
+
+        toast.success(`Bien joué ! ${isGoalReached ? 'Objectif atteint 🔥' : 'Continuez comme ça !'}`);
+        loadHabits();
+    };
+
+    const toggleExpand = (id) => {
+        setExpandedHabitId(expandedHabitId === id ? null : id);
+    };
+
+    return (
+        <div className="space-y-6 pb-20" data-testid="habits-page">
+            <AnimatePresence>
+                {showXPPopup && (
+                    <XPPopup
+                        amount={showXPPopup}
+                        onComplete={() => setShowXPPopup(null)}
+                    />
                 )}
-
-                {/* Settings Button (visible on hover only) */}
-                <div className="absolute top-4 left-4 z-20" onClick={e => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="icon" variant="ghost" className="w-8 h-8 rounded-full hover:bg-black/20 text-white/30 hover:text-white transition-colors">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => handleDelete(habit.id)} className="text-red-500 focus:text-red-500">
-                        <Trash2 className="w-4 h-4 mr-2" /> Supprimer
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            </AnimatePresence>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold flex items-center gap-3" id="habits-title">
+                        <Activity className="w-8 h-8 text-primary" />
+                        Habitudes
+                    </h1>
+                    <p className="text-muted-foreground">Construisez votre discipline</p>
                 </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
+                <Dialog open={isCreateOpen} onOpenChange={(open) => {
+                    setIsCreateOpen(open);
+                    if (!open) setEditHabit(null);
+                }}>
+                    <DialogTrigger asChild>
+                        <Button size="lg" className="gap-2" id="create-habit-btn">
+                            <Plus className="w-5 h-5" /> Nouvelle Habitude
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>{editHabit ? `Modifier: ${editHabit.title}` : 'Nouvelle Habitude'}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Titre</label>
+                                <Input
+                                    placeholder="Ex: Méditation, Lecture..."
+                                    value={formData.title}
+                                    onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Catégorie</label>
+                                <Select
+                                    value={formData.category}
+                                    onValueChange={v => setFormData({ ...formData, category: v })}
+                                >
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="health">Santé</SelectItem>
+                                        <SelectItem value="learning">Apprentissage</SelectItem>
+                                        <SelectItem value="work">Travail</SelectItem>
+                                        <SelectItem value="mindfulness">Mindfulness</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Lier à un Projet (Optionnel)</label>
+                                <Select
+                                    value={formData.projectId || "none"}
+                                    onValueChange={v => setFormData({ ...formData, projectId: v === "none" ? null : v })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Aucun projet" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Aucun projet</SelectItem>
+                                        {projects.map(p => (
+                                            <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Fréquence</label>
+                                    <Select
+                                        value={formData.frequency}
+                                        onValueChange={v => setFormData({ ...formData, frequency: v })}
+                                    >
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="daily">Quotidien</SelectItem>
+                                            <SelectItem value="weekly">Hebdomadaire</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Objectif / jour</label>
+                                    <Input
+                                        type="number"
+                                        min="1"
+                                        value={formData.dailyGoal}
+                                        onChange={e => setFormData({ ...formData, dailyGoal: parseInt(e.target.value) })}
+                                    />
+                                </div>
+                            </div>
+                            <Button onClick={handleCreate} className="w-full">
+                                {editHabit ? 'Sauvegarder les modifications' : "Créer l'habitude"}
+                            </Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            </div>
 
-        {/* Add Button as a Bubble */}
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsOpen(true)}
-          className="aspect-square rounded-[2.5rem] border-4 border-dashed border-white/10 flex flex-col items-center justify-center text-muted-foreground hover:bg-white/5 hover:border-white/20 hover:text-primary cursor-pointer transition-all"
-        >
-          <Plus className="w-12 h-12 mb-2 opacity-30" />
-          <span className="font-medium text-sm opacity-50">Ajouter</span>
-        </motion.div>
-      </div>
-    </div>
-  );
+            <div className="grid grid-cols-1 gap-4" data-testid="habits-list">
+                {isLoading ? (
+                    <HabitsSkeleton />
+                ) : habits.length === 0 ? (
+                    <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
+                        <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                        <h3 className="text-lg font-medium">Aucune habitude</h3>
+                        <p className="text-muted-foreground">Commencez petit, rêvez grand.</p>
+                    </div>
+                ) : habits.map(habit => {
+                    const today = new Date().toDateString();
+                    const lastCompleted = habit.lastCompleted ? new Date(habit.lastCompleted).toDateString() : null;
+                    const completionsToday = lastCompleted === today ? (habit.completionsToday || 0) : 0;
+                    const progress = Math.min((completionsToday / habit.dailyGoal) * 100, 100);
+                    const isExpanded = expandedHabitId === habit.id;
+                    const logs = habitLogs[habit.id] || [];
+
+                    return (
+                        <div key={habit.id} className="bg-card border border-border rounded-xl transition-all hover:border-primary/50 overflow-hidden">
+                            <div className="p-4 flex items-center justify-between gap-4">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="font-bold text-lg">{habit.title}</h3>
+                                        <span className="text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full capitalize">
+                                            {habit.category}
+                                        </span>
+                                        {habit.projectId && (
+                                            <Badge variant="secondary" className="text-[10px] h-5 bg-primary/10 text-primary border-primary/20">
+                                                <FolderKanban className="w-3 h-3 mr-1" />
+                                                {projects.find(p => p.id === habit.projectId)?.title || 'Projet...'}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                        <span className="flex items-center gap-1">
+                                            <Flame className={`w-4 h-4 ${habit.streak > 0 ? 'text-orange-500 fill-orange-500' : ''}`} />
+                                            {habit.streak || 0} jours
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Trophy className="w-4 h-4 text-yellow-500" />
+                                            Record: {habit.bestStreak || 0}
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-3 flex items-center gap-3">
+                                        <Progress value={progress} className="h-2 w-32" />
+                                        <span className="text-xs text-muted-foreground">
+                                            {completionsToday} / {habit.dailyGoal}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-2 items-end">
+                                    <Button
+                                        size="icon"
+                                        className={`rounded-full shadow-lg transition-transform active:scale-95 ${progress >= 100
+                                            ? 'bg-green-500 hover:bg-green-600 text-white'
+                                            : 'bg-primary hover:bg-primary/90'
+                                            }`}
+                                        onClick={() => handleComplete(habit)}
+                                        disabled={progress >= 100 && false} // Allow over-achievement?
+                                    >
+                                        <CheckCircle2 className="w-6 h-6" />
+                                    </Button>
+                                    <div className="flex gap-1">
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                                            onClick={() => handleEdit(habit)}
+                                        >
+                                            <PlusCircle className="w-4 h-4 rotate-45" />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-8 w-8 p-0"
+                                            onClick={() => toggleExpand(habit.id)}
+                                        >
+                                            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                                            onClick={() => handleDelete(habit)}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Expanded Visualization Section */}
+                            {isExpanded && (
+                                <div className="p-4 bg-muted/20 border-t border-border/50 space-y-6 animate-in slide-in-from-top-2">
+                                    <div>
+                                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                            <Calendar className="w-4 h-4" /> Historique (Heatmap)
+                                        </h4>
+                                        <HabitHeatmap completions={logs} />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                                <BarChart3 className="w-4 h-4" /> Consistance
+                                            </h4>
+                                            <HabitConsistency completions={logs} />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                                <Flame className="w-4 h-4" /> Séries
+                                            </h4>
+                                            <StreakCalendar completions={logs} streak={habit.streak} />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
 };
 
 export default Habits;

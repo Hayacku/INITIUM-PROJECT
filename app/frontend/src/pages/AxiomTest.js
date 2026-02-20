@@ -22,7 +22,7 @@ const AxiomTest = () => {
                 <CardHeader><CardTitle>Input Dilemma</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                     <textarea
-                        className="w-full h-32 p-4 bg-background border border-border rounded-md"
+                        className="w-full h-32 p-4 bg-background border border-border rounded-lg"
                         placeholder="Describe your action or dilemma..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
@@ -54,11 +54,11 @@ const AxiomTest = () => {
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div className="p-2 border border-green-500/50 rounded">
                                             <span className="text-gray-400">Gain (Short):</span>
-                                            <div className="font-semibold">{action.impact.immediate_gain}</div>
+                                            <div className="font-bold">{action.impact.immediate_gain}</div>
                                         </div>
                                         <div className="p-2 border border-red-500/50 rounded">
                                             <span className="text-gray-400">Cost (Real):</span>
-                                            <div className="font-semibold">{action.impact.visible_cost}</div>
+                                            <div className="font-bold">{action.impact.visible_cost}</div>
                                         </div>
                                     </div>
 

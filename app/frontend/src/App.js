@@ -4,6 +4,7 @@ import { AppProvider } from './contexts/AppContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { AiProvider } from './contexts/AiContext';
 import { TourProvider } from './contexts/TourContext';
+import { HistoryProvider } from './contexts/HistoryContext';
 import { Toaster } from './components/ui/sonner';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
@@ -29,6 +30,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Pomodoro = lazy(() => import('./pages/Pomodoro'));
 const Help = lazy(() => import('./pages/Help'));
 const AxiomTest = lazy(() => import('./pages/AxiomTest'));
+const Unlockables = lazy(() => import('./pages/Unlockables'));
 
 // Skeletons & Suspense Wrapper
 import SuspensePage from './components/SuspensePage';
@@ -38,12 +40,15 @@ import ProjectsSkeleton from './components/skeletons/ProjectsSkeleton';
 
 
 
+import { notificationService } from './services/NotificationService';
+
 // This component is wrapped by providers so it can use hooks
 function AppContent() {
   useAutoSync();
 
   React.useEffect(() => {
     applyTheme(getCurrentTheme());
+    notificationService.init();
   }, []);
 
   return (
@@ -68,6 +73,7 @@ function AppContent() {
       <Route path="/pomodoro" element={<PrivateRoute><Layout><SuspensePage component={Pomodoro} /></Layout></PrivateRoute>} />
       <Route path="/help" element={<PrivateRoute><Layout><SuspensePage component={Help} /></Layout></PrivateRoute>} />
       <Route path="/axiom-test" element={<PrivateRoute><Layout><SuspensePage component={AxiomTest} /></Layout></PrivateRoute>} />
+      <Route path="/unlockables" element={<PrivateRoute><Layout><SuspensePage component={Unlockables} /></Layout></PrivateRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -85,11 +91,13 @@ function App() {
           <AiProvider>
             <BrowserRouter>
               <TourProvider>
-                <Suspense fallback={null}>
-                  <AppContent />
-                </Suspense>
-                <CookieConsent />
-                <Toaster position="top-right" richColors />
+                <HistoryProvider>
+                  <Suspense fallback={null}>
+                    <AppContent />
+                  </Suspense>
+                  <CookieConsent />
+                  <Toaster position="top-right" richColors />
+                </HistoryProvider>
               </TourProvider>
             </BrowserRouter>
           </AiProvider>

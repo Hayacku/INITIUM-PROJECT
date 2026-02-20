@@ -25,19 +25,18 @@ const StatCard = ({
 
     return (
         <div className={`
-            relative overflow-hidden rounded-2xl p-4 transition-all duration-200
-            bg-[#18181b] border border-white/5 hover:border-white/10
-            group hover:translate-y-[-2px] hover:shadow-lg ${className}
+            relative overflow-hidden transition-all duration-200
+            glass-card p-4 group hover:translate-y-[-2px] hover:shadow-lg ${className}
         `}>
             <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                <div className="min-w-0 flex-1">
+                    <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 truncate">
                         {label}
                     </p>
-                    <h3 className="text-2xl font-bold text-white tracking-tight">
+                    <h3 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight truncate">
                         {value}
                     </h3>
-                    <p className="text-xs text-white/60 mt-1 font-medium">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 font-medium truncate">
                         {subtitle}
                     </p>
                 </div>

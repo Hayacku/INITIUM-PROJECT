@@ -41,13 +41,13 @@ const AppearanceSettings = () => {
                             <button
                                 key={t.id}
                                 onClick={() => changeTheme(t.id)}
-                                className={`group relative p-4 rounded-xl border transition-all duration-300 text-left hover:scale-[1.02] flex items-start gap-4 ${theme === t.id
+                                className={`group relative p-4 rounded-xl border transition-all duration-300 text-left hover:scale-[1.02] flex items-start gap-4 backdrop-blur-md ${theme === t.id
                                     ? 'bg-primary/10 border-primary ring-1 ring-primary'
                                     : 'bg-white/5 border-white/10 hover:border-white/20'}`}
                             >
                                 <div className={`w-12 h-12 rounded-lg shadow-lg border border-white/10 flex-shrink-0 ${t.preview || 'bg-black'}`} />
                                 <div>
-                                    <h4 className="font-bold text-base flex items-center gap-2">
+                                    <h4 className="font-bold text-2xl flex items-center gap-2">
                                         {t.label}
                                         {theme === t.id && <Check className="w-4 h-4 text-primary" />}
                                     </h4>
@@ -65,7 +65,7 @@ const AppearanceSettings = () => {
                 {/* Accent Color */}
                 <Card className="glass-card">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base">
+                        <CardTitle className="flex items-center gap-2 text-2xl">
                             <Monitor className="w-4 h-4" /> Couleur d'Accent
                         </CardTitle>
                     </CardHeader>
@@ -107,13 +107,13 @@ const AppearanceSettings = () => {
                             <div className="flex gap-2 p-1 bg-black/20 rounded-lg">
                                 <button
                                     onClick={() => updateAppearance({ ...appearance, density: 'comfortable' })}
-                                    className={`flex-1 py-1.5 text-sm rounded-md transition-all ${appearance?.density !== 'compact' ? 'bg-primary text-white shadow' : 'text-muted-foreground hover:bg-white/5'}`}
+                                    className={`flex-1 py-1.5 text-sm rounded-lg transition-all ${appearance?.density !== 'compact' ? 'bg-primary text-white shadow' : 'text-muted-foreground hover:bg-white/5'}`}
                                 >
                                     Confortable
                                 </button>
                                 <button
                                     onClick={() => updateAppearance({ ...appearance, density: 'compact' })}
-                                    className={`flex-1 py-1.5 text-sm rounded-md transition-all ${appearance?.density === 'compact' ? 'bg-primary text-white shadow' : 'text-muted-foreground hover:bg-white/5'}`}
+                                    className={`flex-1 py-1.5 text-sm rounded-lg transition-all ${appearance?.density === 'compact' ? 'bg-primary text-white shadow' : 'text-muted-foreground hover:bg-white/5'}`}
                                 >
                                     Compact
                                 </button>
@@ -126,19 +126,19 @@ const AppearanceSettings = () => {
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => updateAppearance({ ...appearance, font: 'sans' })}
-                                    className={`px-3 py-1.5 text-sm border rounded-md transition-all ${!appearance?.font || appearance?.font === 'sans' ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 hover:border-white/20'}`}
+                                    className={`px-3 py-1.5 text-sm border rounded-lg transition-all ${!appearance?.font || appearance?.font === 'sans' ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 hover:border-white/20'}`}
                                 >
                                     Sans
                                 </button>
                                 <button
                                     onClick={() => updateAppearance({ ...appearance, font: 'serif' })}
-                                    className={`px-3 py-1.5 text-sm border rounded-md font-serif transition-all ${appearance?.font === 'serif' ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 hover:border-white/20'}`}
+                                    className={`px-3 py-1.5 text-sm border rounded-lg font-serif transition-all ${appearance?.font === 'serif' ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 hover:border-white/20'}`}
                                 >
                                     Serif
                                 </button>
                                 <button
                                     onClick={() => updateAppearance({ ...appearance, font: 'mono' })}
-                                    className={`px-3 py-1.5 text-sm border rounded-md font-mono transition-all ${appearance?.font === 'mono' ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 hover:border-white/20'}`}
+                                    className={`px-3 py-1.5 text-sm border rounded-lg font-mono transition-all ${appearance?.font === 'mono' ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 hover:border-white/20'}`}
                                 >
                                     Mono
                                 </button>

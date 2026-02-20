@@ -14,7 +14,7 @@ export const GUEST_ACHIEVEMENTS = [
     },
     {
         id: 'guest-2',
-        name: "Explorateur Curieux",
+        name: "Initié Curieux",
         description: "Ouvrir 3 pages différentes",
         rarity: "common",
         icon: <Target className="w-10 h-10 text-green-400" />,
