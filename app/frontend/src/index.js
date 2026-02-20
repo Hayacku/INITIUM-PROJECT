@@ -37,5 +37,5 @@ root.render(
   </React.StrictMode>
 );
 
-// Enable PWA
-serviceWorkerRegistration.register();
+// Disable PWA for now to clear stale caches causing SyntaxErrors
+serviceWorkerRegistration.unregister();
